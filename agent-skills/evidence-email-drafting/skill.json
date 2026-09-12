@@ -1,0 +1,13 @@
+{
+  "id": "evidence-email-drafting",
+  "name": "邮件事实审校与草稿",
+  "version": "1.0.0",
+  "category": "email",
+  "description": "从当前来信、历史往来和产品资料提取事实与待确认项，经人工审核后生成可追溯的本地邮件草稿。",
+  "status": "active",
+  "priority": 99,
+  "triggers": ["回复客户邮件", "历史邮件", "邮件草稿", "询盘回复", "报价回复", "客诉回复"],
+  "keywords": ["邮件", "来信", "历史往来", "事实依据", "待确认", "人工审核", "草稿", "报价", "交期", "赔偿"],
+  "modules": ["email-workbench", "development-email", "customers"],
+  "toolRefs": ["email.list_threads", "email.get_message", "email.extract_evidence", "email.create_local_draft", "email.submit_review", "email.get_draft", "ui.open_email_workbench"]
+}

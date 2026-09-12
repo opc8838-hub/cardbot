@@ -1,0 +1,80 @@
+"""Real UI interactions against an already-running CardBot Vite server."""
+import os
+from pathlib import Path
+from playwright.sync_api import sync_playwright, expect
+
+BASE_URL = os.environ.get("CARDBOT_PREVIEW_URL", "http://127.0.0.1:5190")
+ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
+
+def no_overflow(page):
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+
+with sync_playwright() as p:
+    ARTIFACTS.mkdir(exist_ok=True)
+    browser = p.chromium.launch(headless=True)
+    context = browser.new_context(viewport={"width": 1440, "height": 960})
+    page = context.new_page()
+    errors = []
+    page.on("pageerror", lambda err: errors.append(str(err)))
+    page.goto(BASE_URL + "/?intro=1")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#hello-word")).to_have_text("Hello")
+    page.screenshot(path=str(ARTIFACTS / "v2-hello.png"))
+    page.locator(".manifesto").wait_for(timeout=15000)
+    expect(page.locator(".capabilities span")).to_have_count(5)
+    assert page.locator('input[type="password"]').count() == 0
+    page.wait_for_timeout(1500)
+    no_overflow(page)
+    page.screenshot(path=str(ARTIFACTS / "v2-manifesto.png"))
+    page.get_by_role("button", name="Enter workspace").click()
+    page.wait_for_timeout(500)
+    page.screenshot(path=str(ARTIFACTS / "v2-workspace-light.png"))
+    expect(page.locator("#text-earth")).to_be_visible()
+    page.locator('[data-action="theme"]').click()
+    assert page.locator("html").get_attribute("data-theme") == "dark"
+    page.screenshot(path=str(ARTIFACTS / "v2-workspace-dark.png"))
+    page.locator('[data-task="TASK-002"]').click()
+    page.locator('[data-action="complete"]').click()
+    expect(page.locator("#notice")).to_contain_text("完成依据")
+    page.locator("#completion-evidence").fill("REPORT-001 已提交汇总（虚构演示）")
+    page.locator('[data-action="complete"]').click()
+    expect(page.locator('[data-task="TASK-002"]')).to_contain_text("已完成")
+    page.locator('[data-action="evening"]').last.click()
+    expect(page.locator(".recap")).to_contain_text("新版报价")
+    page.locator('[data-task="TASK-001"]').click()
+    page.locator('[data-action="generate"]').click()
+    expect(page.locator('[data-action="save-draft"]')).to_be_disabled()
+    page.locator('[data-action="approve"]').click()
+    expect(page.locator("#notice")).to_contain_text("勾选")
+    page.locator("#review-check").check()
+    page.locator('[data-action="approve"]').click()
+    page.locator('[data-action="save-draft"]').click()
+    expect(page.locator(".save-receipt")).to_contain_text("未写入小满")
+    page.goto(BASE_URL)
+    page.locator('[data-view="drafts"]').click()
+    expect(page.locator("#draft-status")).to_have_text("已保存至本地")
+    body = page.locator("#draft-body").input_value()
+    page.locator("#draft-body").fill(body + "\nEdited by reviewer.")
+    expect(page.locator('[data-action="save-draft"]')).to_be_disabled()
+    page.locator('[data-view="team"]').click()
+    expect(page.locator(".team-layout")).to_contain_text("TASK-002")
+    page.locator('[data-view="workday"]').click()
+    expect(page.locator('[data-task="TASK-001"]')).to_contain_text("待确认")
+    no_overflow(page)
+    assert not errors, errors
+    context.close()
+
+    mobile = browser.new_context(viewport={"width": 390, "height": 844}, reduced_motion="reduce")
+    page = mobile.new_page()
+    page.goto(BASE_URL + "/?intro=1")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#hello-word")).to_have_text("Hello / 你好")
+    page.locator('[data-action="skip"]').click()
+    no_overflow(page)
+    page.screenshot(path=str(ARTIFACTS / "v2-manifesto-mobile.png"), full_page=True)
+    page.get_by_role("button", name="Enter workspace").click()
+    no_overflow(page)
+    page.screenshot(path=str(ARTIFACTS / "v2-workspace-mobile.png"), full_page=True)
+    mobile.close()
+    browser.close()
+print("PASS: intro, CARD, no login, themes, same-batch tasks, evidence gate, review, local persistence, invalidation, mobile, reduced motion")

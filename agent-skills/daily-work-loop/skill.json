@@ -1,0 +1,13 @@
+{
+  "id": "daily-work-loop",
+  "name": "全天任务闭环",
+  "version": "1.0.0",
+  "category": "workbench",
+  "description": "把邮件、上级安排和跨部门消息整理成同一批可追溯任务，并贯穿早间清单、状态变化和晚间提醒。",
+  "status": "active",
+  "priority": 98,
+  "triggers": ["今日待办", "早间清单", "晚间提醒", "工作进展", "未完成事项", "全天任务"],
+  "keywords": ["任务", "待办", "来源", "负责人", "截止时间", "完成依据", "待确认", "早间", "晚间"],
+  "modules": ["workbench", "reminders", "management"],
+  "toolRefs": ["work.list_source_items", "work.upsert_task", "work.list_daily_tasks", "work.update_task_status", "work.get_task_evidence", "work.get_team_summary", "ui.open_workbench"]
+}

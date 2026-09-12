@@ -1,0 +1,59 @@
+# 换电脑、换账号与下一位开发者交接
+
+## 从哪里开始
+
+1. 拉取 `https://github.com/opc8838-hub/cardbot`，不要从聊天截图重建项目。
+2. 读 README → STATUS → COMPETITION → ARCHITECTURE → 本文件。
+3. `npm ci`，`npm run preview:dev`，先确认能够看到 5190 的新预览。
+4. `npm run test:core`，确认基础没有回归，再动手。
+5. 对照 ROADMAP 只做下一条已授权任务，外部付费调用/生产写入需单独明确范围。
+
+## 可以复制给新 AI/开发者的提示
+
+> 这是 CardBot 的现有项目。请先完整读 AGENTS.md、docs/STATUS.md、docs/HANDOFF.md，并检查 git status。用户要全球贸易工作助手与销售邮件助手的闭环，当前新 UI 在 `/`、真实 CRM 在 `/crm.html`。新预览是虚构 localStorage 数据，不等于后端或真实小满。先保留已有实现和改动，不重写项目；报告你读到的当前阶段、已验证项和下一步缺口，再根据我的新任务开发。密钥/账号不能进 Git；不要把 Mock/本地稿称为小满保存成功。提交时同步更新文档和测试结论。
+
+## 日常同步纪律
+
+开始前：
+
+```sh
+git status
+git fetch origin
+git pull --ff-only
+```
+
+有未提交改动时先检查、提交或安全备份自己的改动，不用 reset --hard。远端发生分叉时停下来理解冲突，不 force push。可在功能分支开发：`git switch -c feature/描述`（名称按实际任务取）。
+
+结束时：
+
+1. 跑本次相关测试，记录命令、结果、未测项。
+2. 更新 STATUS（完成度/验证）、ROADMAP（下一步/决策）、RUNBOOK（命令变化）、相关接口/设计文档。
+3. `git diff --check`、`git diff`，检查没有密钥、真实客户数据或生成垃圾。
+4. 将确认范围的文件 stage，commit，push；再确认本地 HEAD 与远端一致。
+5. GitHub 上能读到最新 README 和状态文档，另一台电脑才算能接手。仅保存文件未 commit/push 不算同步。
+
+## 哪些不能靠 Git 同步
+
+Git 只同步版本化文件，不同步浏览器数据、运行进程、数据库、登录状态、密钥或模型额度。新电脑启动 localhost 是另一份本地环境；需要多人同一数据时要共用受控后端/数据库，而不是把数据库备份放 Git。
+
+已忽略：`.env*`（示例除外）、node_modules、dist、日志、数据库/会话文件、本地业务草稿、截图产物、管理员账号说明、个人业务表格。这些本地文件没有被删除，只是不上传。需要真实业务迁移时，通过加密备份与最小权限渠道单独办理。
+
+不同 GitHub 账号需要仓库写权限与各自登录凭证。换了 AI 账号不自动获得 GitHub、模型或小满权限；不要共享 token 到聊天/文档里。
+
+## 保持“所有信息同步”的实际规则
+
+| 信息 | 唯一主位置 |
+| --- | --- |
+| 当前阶段、测试证据、缺口 | docs/STATUS.md |
+| 用户确认目标与下一步思考 | docs/ROADMAP.md |
+| 赛事硬约束与演示方式 | docs/COMPETITION.md |
+| 接口与外部凭证需求（不含秘密） | docs/INTEGRATIONS.md |
+| 运行方式与数据边界 | docs/RUNBOOK.md |
+| 前端设计规范 | FRONTEND_DESIGN_SPEC.md |
+| 原始实现细节 | 代码/类型/测试，与文档发生差异时先核实 |
+
+历史计划和 DESIGN_V1_ARCHIVE 只能看背景；不要让它们覆盖新决策。每次重大判断记录“为什么/代价/验收条件”，避免下一位重复争论。
+
+## 下一步最值得做的事
+
+先请用户看本次 UI，确认细节；技术上优先推进 ROADMAP P1 的真实 API 适配和外写安全校验。同时向主办方索取测试账号/API 文档。不要等待账号期间空转，也不要没授权就尝试生产小满。

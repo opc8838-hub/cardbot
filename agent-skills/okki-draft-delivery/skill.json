@@ -1,0 +1,13 @@
+{
+  "id": "okki-draft-delivery",
+  "name": "小满草稿交付与复核",
+  "version": "1.0.0",
+  "category": "connector",
+  "description": "通过统一连接器选择 Mock、官方 API 或 Playwright RPA，把已审核邮件保存到小满草稿箱并复核。",
+  "status": "active",
+  "priority": 100,
+  "triggers": ["保存到小满", "写入小满草稿箱", "复核小满草稿", "重新登录复核"],
+  "keywords": ["小满", "OKKI", "草稿箱", "API", "RPA", "Mock", "保存", "复核"],
+  "modules": ["email-workbench", "connectors", "okki"],
+  "toolRefs": ["okki.get_capabilities", "okki.save_draft", "okki.get_draft", "okki.verify_draft", "okki.get_connection_status", "ui.open_connector_settings"]
+}

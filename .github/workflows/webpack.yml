@@ -1,0 +1,31 @@
+name: CardBot core checks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install locked dependencies
+      run: npm ci
+    - name: Core tests
+      run: npm run test:core
+    - name: Frontend build
+      run: |
+        npm run build --workspace frontend

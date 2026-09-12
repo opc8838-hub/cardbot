@@ -1,0 +1,49 @@
+# Local secrets and account material: never sync through Git.
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+管理员登录账号说明.txt
+仪表外贸新客户开拓90天执行方案.xlsx
+**/credentials*.json
+**/*credentials*.txt
+**/storage-state*.json
+**/auth-state*.json
+# Dependencies / generated output
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+*.log
+*.pid
+__pycache__/
+.venv/
+.DS_Store
+Thumbs.db
+# Runtime business data / sessions / backups
+.data/
+.local/
+.cache/
+backend/data/
+data/
+uploads/
+backups/
+*.sqlite
+*.sqlite3
+*.db
+.wwebjs_auth/
+.wwebjs_cache/
+whatsapp-plugin/.auth/
+whatsapp-plugin/sessions/
+whatsapp-plugin/auth_info*/
+playwright-report/
+test-results/
+frontend/tests/artifacts/
+**/artifacts/
+# Machine-only inspection helper
+scripts/inspect-source.cjs
