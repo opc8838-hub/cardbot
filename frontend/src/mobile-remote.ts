@@ -42,9 +42,9 @@ export function renderRemotePanel(locale: Locale, state: RemoteState, seed: numb
         </section>
         <section class="wb-remote-channels"><div class="wb-remote-section-title"><span>♙</span><div><h3>${t('使用 Bot Channel','Use a Bot Channel')}</h3><p>${t('连接聊天 Bot，适合更长时间的移动端访问','Connect a chat bot for longer mobile access')}</p></div></div>
           <div class="wb-channel-list">
-            <article>${channelLogo('wechat')}<div><h4>${t('微信','WeChat')}</h4><p>${t('从微信会话打开这个工作区','Open this workspace from a WeChat chat')}</p><button data-wb-action="remote-channel">${t('去 Bot Channels 配置','Configure Bot Channels')}</button></div></article>
-            <article>${channelLogo('lark')}<div><h4>${t('飞书','Lark')}</h4><p>${t('从飞书打开这个工作区','Open this workspace from Lark')}</p><button data-wb-action="remote-channel">${t('去 Bot Channels 配置','Configure Bot Channels')}</button></div></article>
-            <article>${channelLogo('whatsapp')}<div><h4>WhatsApp</h4><p>${t('从 WhatsApp 打开这个工作区','Open this workspace from WhatsApp')}</p><button data-wb-action="remote-channel">${t('去 Bot Channels 配置','Configure Bot Channels')}</button></div></article>
+            <article>${channelLogo('wechat')}<div class="wb-channel-copy"><div class="wb-channel-line"><h4>${t('微信','WeChat')}</h4><p>${t('从微信会话打开这个工作区','Open this workspace from a WeChat chat')}</p></div><button data-wb-action="remote-channel">${t('去 Bot Channels 配置','Configure Bot Channels')}</button></div></article>
+            <article>${channelLogo('lark')}<div class="wb-channel-copy"><div class="wb-channel-line"><h4>${t('飞书','Lark')}</h4><p>${t('从飞书打开这个工作区','Open this workspace from Lark')}</p></div><button data-wb-action="remote-channel">${t('去 Bot Channels 配置','Configure Bot Channels')}</button></div></article>
+            <article>${channelLogo('whatsapp')}<div class="wb-channel-copy"><div class="wb-channel-line"><h4>WhatsApp</h4><p>${t('从 WhatsApp 打开这个工作区','Open this workspace from WhatsApp')}</p></div><button data-wb-action="remote-channel">${t('去 Bot Channels 配置','Configure Bot Channels')}</button></div></article>
           </div><button class="wb-bot-manager" data-wb-action="remote-channel">♙ ${t('机器人管理','Bot management')}</button>
         </section>
       </div>

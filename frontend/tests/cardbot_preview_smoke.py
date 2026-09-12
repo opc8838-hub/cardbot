@@ -28,6 +28,8 @@ with sync_playwright() as p:
     expect(page.locator('.capabilities span')).to_have_count(5)
     assert page.locator('input[type="password"]').count() == 0
     page.locator('[data-action="workspace"]').last.click()
+    expect(page.locator('.wb-company')).to_contain_text('望京企业全球贸易')
+    assert page.locator('.wb-company .wb-avatar').count() == 0
     expect(page.locator('.wb-sidebar')).to_be_visible()
     assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
     assert page.locator('.wb-nav[data-view="outbox"] small').count() == 0
@@ -204,6 +206,17 @@ with sync_playwright() as p:
     page.screenshot(path=str(ARTIFACTS / 'v4-bot-chat.png'), full_page=True)
     page.locator('[data-bot-action="minimize"]').click()
     expect(page.get_by_test_id('bot-chat-minimized')).to_be_visible()
+    minimized_before = page.get_by_test_id('bot-chat-minimized').bounding_box()
+    minimized_drag = page.get_by_test_id('bot-chat-minimized').locator('.cb-bot-face')
+    minimized_drag_box = minimized_drag.bounding_box()
+    page.mouse.move(minimized_drag_box['x'] + 12, minimized_drag_box['y'] + 12)
+    page.mouse.down()
+    page.mouse.move(62, 160, steps=8)
+    page.mouse.up()
+    minimized_after = page.get_by_test_id('bot-chat-minimized').bounding_box()
+    assert minimized_after['x'] < minimized_before['x'] - 100
+    assert minimized_after['x'] < 90  # May overlap the left navigation area.
+    page.screenshot(path=str(ARTIFACTS / 'v5-bot-minimized-drag.png'), full_page=True)
     page.locator('[data-bot-action="expand"]').click()
     expect(page.get_by_test_id('bot-chat')).to_be_visible()
     action(page, 'language').click()
@@ -219,10 +232,15 @@ with sync_playwright() as p:
     expect(page.get_by_test_id('brand-bot').locator('.cb-bot-face')).to_have_attribute('data-expression', 'heureux')
     page.get_by_test_id('remote-trigger').click()
     expect(page.get_by_test_id('remote-dialog')).to_be_visible()
+    assert page.get_by_test_id('remote-dialog').bounding_box()['width'] <= 862
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('Mobile remote control')
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('WhatsApp')
     assert page.get_by_test_id('remote-dialog').get_by_text('Telegram', exact=True).count() == 0
     expect(page.locator('.wb-channel-logo svg')).to_have_count(3)
+    expect(page.locator('.wb-channel-line')).to_have_count(3)
+    channel_line = page.locator('.wb-channel-line').first
+    assert abs(channel_line.locator('h4').bounding_box()['y'] - channel_line.locator('p').bounding_box()['y']) < 8
+    assert page.locator('.wb-channel-list article').first.bounding_box()['height'] < 115
     page.locator('[data-wb-action="remote-refresh"]').click()
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('QR code refreshed')
     page.screenshot(path=str(ARTIFACTS / 'v4-mobile-remote-dark-en.png'), full_page=True)

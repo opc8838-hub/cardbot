@@ -142,7 +142,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function chat() {
-    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized">${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('企业知识助手','Company knowledge assistant')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
+    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized" data-bot-drag-handle>${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('企业知识助手','Company knowledge assistant')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
     greeting();
     const suggestions = KNOWLEDGE_PROMPTS[locale];
     return `<section class="cb-bot-popover cb-bot-chat" style="${accentStyle(config)}" role="dialog" aria-modal="false" aria-labelledby="bot-chat-title" data-testid="bot-chat">
@@ -163,7 +163,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     if (panel === 'picker') root.insertAdjacentHTML('beforeend', picker());
     if (panel === 'chat' || panel === 'minimized') root.insertAdjacentHTML('beforeend', chat());
     const popover = root.querySelector<HTMLElement>('.cb-bot-popover');
-    if (popover && dragPosition && window.innerWidth > 700) {
+    if (popover && dragPosition && (window.innerWidth > 700 || panel === 'minimized')) {
       popover.style.left = `${dragPosition.x}px`; popover.style.top = `${dragPosition.y}px`;
       popover.style.right = 'auto'; popover.style.bottom = 'auto';
     }
@@ -216,7 +216,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function pointerdown(event: PointerEvent) {
-    if (window.innerWidth <= 700 || event.button !== 0) return;
+    if ((window.innerWidth <= 700 && panel !== 'minimized') || event.button !== 0) return;
     const target = event.target as HTMLElement;
     const handle = target.closest<HTMLElement>('[data-bot-drag-handle]');
     if (!handle || target.closest('button,input')) return;
