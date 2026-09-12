@@ -40,3 +40,6 @@
 /* The sticky toolbar is an opaque lid: scrolled content cannot show above or through it. */
 .wb-topbar{top:0;border-radius:19px;background:var(--paper);backdrop-filter:none;box-shadow:0 8px 20px color-mix(in srgb,var(--ink) 5%,transparent)}
 @media(max-width:700px){.wb-topbar{top:0;border-radius:15px}}
+
+/* Keep the stretched overview action area on the same surface as its task list. */
+.wb-overview-grid>.wb-panel:first-child .wb-next{background:var(--surface)}
