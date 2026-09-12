@@ -29,6 +29,7 @@ with sync_playwright() as p:
     assert page.locator('input[type="password"]').count() == 0
     page.locator('[data-action="workspace"]').last.click()
     expect(page.locator('.wb-sidebar')).to_be_visible()
+    assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
     expect(page.locator('#text-earth')).to_be_visible()
     expect(page.locator('.wb-zone')).to_have_count(6)
     expect(page.locator('#demo-user')).to_have_value('sales-01')
@@ -42,6 +43,7 @@ with sync_playwright() as p:
     assert page.locator('#shanghai-greeting').inner_text() in {'Good morning', 'Good afternoon', 'Good evening'}
     action(page, 'theme').click()
     page.screenshot(path=str(ARTIFACTS / 'v3-overview-dark-en.png'), full_page=True)
+    assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
     action(page, 'theme').click()
     action(page, 'language').click()
 
@@ -145,6 +147,7 @@ with sync_playwright() as p:
         if width < 700:
             action(page, 'menu').click()
             expect(page.locator('.wb-sidebar')).to_be_visible()
+            page.screenshot(path=str(ARTIFACTS / 'v3-navigation-mobile.png'), full_page=True)
         nav(page, 'evidence').click()
         no_overflow(page)
         action(page, 'tour-start').click()
