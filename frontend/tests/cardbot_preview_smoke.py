@@ -41,6 +41,10 @@ with sync_playwright() as p:
     expect(page.locator('.wb-zone')).to_have_count(6)
     expect(page.locator('#demo-user')).to_have_value('sales-01')
     expect(page.locator('[data-task]')).to_have_count(3)
+    overview_panels = page.locator('.wb-overview-grid > .wb-panel')
+    expect(overview_panels).to_have_count(2)
+    panel_heights = [overview_panels.nth(i).bounding_box()['height'] for i in range(2)]
+    assert abs(panel_heights[0] - panel_heights[1]) <= 2
     no_overflow(page)
     page.screenshot(path=str(ARTIFACTS / 'v3-overview-light.png'), full_page=True)
     page.evaluate('scrollTo(0, 600)')
