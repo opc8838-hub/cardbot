@@ -1,5 +1,6 @@
 import "./cardbot-preview.css";
 import { mountTextArt } from "./text-art";
+import { getShanghaiGreeting } from "./shanghai-greeting";
 import { loadPreview, freshPreview, createDraft, editDraft, approveDraft, saveDraft, completeTask, STORAGE_KEY } from "./preview-store";
 
 const root = document.querySelector<HTMLDivElement>("#cardbot")!;
@@ -139,7 +140,7 @@ function workspace(view = currentView) {
     <div class="preview-ribbon"><span><i></i> INTERACTIVE PREVIEW</span><span>虚构演示数据 · 保存在当前浏览器 · 不发送邮件</span><a href="/crm.html?intro=0">真实 CRM 独立入口 ↗</a></div>
     <main class="workspace-main">
       <section class="world-stage" aria-label="全球贸易文字地球">
-        <div class="world-heading"><p class="eyebrow">你的全球业务，都在同一个工作日。</p><h1>早上好。<br>让我们推动<br><em>工作向前。</em></h1><p class="intro-copy">每一次跟进，都有据可依。<br>从早间待办，到晚间复盘。</p><div class="world-actions">${pill("打开今日任务 ↗", "tasks", "primary")}${pill("查看晚间复盘", "evening")}</div></div>
+        <div class="world-heading"><p class="eyebrow">你的全球业务，都在同一个工作日。</p><h1><span id="shanghai-greeting">${getShanghaiGreeting(locale, new Date())}</span><br>${locale === "zh" ? "让我们推动" : "Let's move"}<br><em>${locale === "zh" ? "工作向前" : "work forward"}</em></h1><p class="intro-copy">每一次跟进，都有据可依。<br>从早间待办，到晚间复盘。</p><div class="world-actions">${pill("打开今日任务 ↗", "tasks", "primary")}${pill("查看晚间复盘", "evening")}</div></div>
         <div class="earth-wrap"><canvas id="text-earth" tabindex="0" role="img" aria-label="由小字组成大陆的旋转地球；可拖动或用左右方向键旋转"></canvas><div class="time-zone-layer" aria-label="全球实时时区">${timeZoneChips()}</div><span class="earth-cross top">+</span><span class="earth-cross bottom">+</span><span class="earth-foot mono">对话组成的世界<br>拖动探索</span></div>
         <aside class="world-coordinates"><span class="eyebrow">本地时间 / 实时时钟</span><time id="local-time"></time><span id="local-zone" class="mono"></span><hr><label for="city">市场 / 演示城市</label><select id="city">${marketOptions()}</select><time id="market-time"></time><span id="coordinates" class="mono">31.2304° N / 121.4737° E</span><span class="coordinate-note">城市坐标为预置参考<br>不是客户真实地址</span></aside>
         <div class="world-bottom mono"><span>01 / 全球工作台</span><span id="rotation">VIEW CENTER / 100° E</span><span>人工始终在环</span></div>
@@ -163,6 +164,7 @@ function workspace(view = currentView) {
     document.querySelector("#local-zone")!.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
     document.querySelector("#market-time")!.textContent = now.toLocaleTimeString("en-GB", { timeZone: city });
     document.querySelector("#coordinates")!.textContent = MARKETS.find(item => item[0] === city)?.[3] || "";
+    document.querySelector("#shanghai-greeting")!.textContent = getShanghaiGreeting(locale, now);
     document.querySelectorAll<HTMLElement>(".time-chip").forEach(chip => {
       const zone = chip.dataset.zone!;
       chip.querySelector("time")!.textContent = now.toLocaleTimeString("en-GB", { timeZone: zone, hour: "2-digit", minute: "2-digit" });

@@ -37,11 +37,12 @@ with sync_playwright() as p:
     page.locator('[data-action="language"]').click()
     expect(page.locator("html")).to_have_attribute("lang", "en")
     expect(page.locator("#city")).to_have_value("Europe/London")
-    expect(page.locator(".world-heading")).to_contain_text("Good morning")
+    assert page.locator("#shanghai-greeting").inner_text() in {"Good morning", "Good afternoon", "Good evening"}
     expect(page.locator('[data-task="TASK-001"]')).to_contain_text("Prepare the revised quotation reply")
     page.locator('[data-action="language"]').click()
     expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
-    expect(page.locator(".world-heading")).to_contain_text("早上好")
+    assert page.locator("#shanghai-greeting").inner_text() in {"早上好", "下午好", "晚上好"}
+    assert "。" not in page.locator(".world-heading h1").inner_text()
     page.locator('[data-action="theme"]').click()
     assert page.locator("html").get_attribute("data-theme") == "dark"
     page.screenshot(path=str(ARTIFACTS / "v2-workspace-dark.png"))

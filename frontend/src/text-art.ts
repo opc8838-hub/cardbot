@@ -40,7 +40,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
       return;
     }
     const r = Math.min(w, h) * .455, rad = Math.PI / 180;
-    ctx.strokeStyle = `rgba(${color},.16)`; ctx.lineWidth = .7;
+    ctx.strokeStyle = `rgba(${color},.24)`; ctx.lineWidth = .8;
     ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.stroke();
     for (const p of points) {
       const latitude = p.lat * rad, longitude = (p.lon + rotation) * rad;
@@ -48,8 +48,8 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
       if (z <= .03) continue;
       const x = w / 2 + Math.cos(latitude) * Math.sin(longitude) * r;
       const y = h / 2 - Math.sin(latitude) * r;
-      ctx.font = `${Math.max(4, r * .023)}px Consolas, monospace`;
-      ctx.fillStyle = `rgba(${color},${p.land ? .24 + z * .6 : .015 + z * .045})`;
+      ctx.font = `${Math.max(4.5, r * .024)}px Consolas, monospace`;
+      ctx.fillStyle = `rgba(${color},${p.land ? .32 + z * .64 : .022 + z * .055})`;
       ctx.save(); ctx.translate(x, y); ctx.scale(Math.max(.25, z), 1);
       ctx.fillText(p.word, -r * .03, 0); ctx.restore();
     }

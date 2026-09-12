@@ -7,6 +7,7 @@ const env = { ...process.env, CARDBOT_ENV_FILE: resolve(root, "scripts/test.env.
 for (const key of ["DATABASE_URL", "MYSQL_URL", "OKKI_API_TOKEN", "OPENAI_API_KEY", "DEEPSEEK_API_KEY"]) delete env[key];
 const tests = [
   "frontend/src/preview-store.test.ts",
+  "frontend/src/shanghai-greeting.test.ts",
   "frontend/src/self-test.ts",
   "backend/src/workday-test.ts",
   "backend/src/workday-http-test.ts",
