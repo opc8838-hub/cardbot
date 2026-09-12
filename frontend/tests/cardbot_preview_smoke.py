@@ -30,12 +30,20 @@ with sync_playwright() as p:
     page.locator('[data-action="workspace"]').last.click()
     expect(page.locator('.wb-sidebar')).to_be_visible()
     assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
+    expect(page.locator('#demo-user')).to_be_enabled()
+    assert page.locator('.wb-topbar').evaluate("el => getComputedStyle(el).position") == 'sticky'
+    assert page.locator('.wb-tour-invite').bounding_box()['height'] < 80
     expect(page.locator('#text-earth')).to_be_visible()
     expect(page.locator('.wb-zone')).to_have_count(6)
     expect(page.locator('#demo-user')).to_have_value('sales-01')
     expect(page.locator('[data-task]')).to_have_count(3)
     no_overflow(page)
     page.screenshot(path=str(ARTIFACTS / 'v3-overview-light.png'), full_page=True)
+    page.evaluate('scrollTo(0, 600)')
+    page.wait_for_timeout(100)
+    assert page.locator('.wb-topbar').bounding_box()['y'] <= 11
+    page.screenshot(path=str(ARTIFACTS / 'v3-sticky-toolbar.png'))
+    page.evaluate('scrollTo(0, 0)')
     page.locator('#city').select_option('Europe/London')
     action(page, 'language').click()
     expect(page.locator('html')).to_have_attribute('lang', 'en')
@@ -132,6 +140,12 @@ with sync_playwright() as p:
     action(page, 'language').click()
     no_overflow(page)
     page.screenshot(path=str(ARTIFACTS / 'v3-organization-en.png'), full_page=True)
+    action(page, 'tour-start').click()
+    expect(page.locator('#demo-user')).to_be_enabled()
+    page.locator('#demo-user').select_option('sales-02')
+    expect(page.locator('.wb-player')).to_have_count(0)
+    expect(page.locator('#demo-user')).to_have_value('sales-02')
+    expect(page.locator('#notice')).to_contain_text('account switched')
     assert not errors, errors
     context.close()
 
