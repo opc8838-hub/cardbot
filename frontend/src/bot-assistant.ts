@@ -142,7 +142,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function chat() {
-    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized" data-bot-drag-handle>${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('企业知识助手','Company knowledge assistant')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
+    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized" data-bot-drag-handle>${face(config,'mini',true)}<button data-bot-action="expand" aria-label="${t('展开 CardBot','Expand CardBot')}"><strong>CardBot</strong></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
     greeting();
     const suggestions = KNOWLEDGE_PROMPTS[locale];
     return `<section class="cb-bot-popover cb-bot-chat" style="${accentStyle(config)}" role="dialog" aria-modal="false" aria-labelledby="bot-chat-title" data-testid="bot-chat">

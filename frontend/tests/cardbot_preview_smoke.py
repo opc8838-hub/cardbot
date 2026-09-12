@@ -207,6 +207,10 @@ with sync_playwright() as p:
     page.locator('[data-bot-action="minimize"]').click()
     expect(page.get_by_test_id('bot-chat-minimized')).to_be_visible()
     minimized_before = page.get_by_test_id('bot-chat-minimized').bounding_box()
+    assert minimized_before['width'] <= 178
+    assert minimized_before['height'] <= 50
+    expect(page.get_by_test_id('bot-chat-minimized').locator('strong')).to_have_text('CardBot')
+    assert page.get_by_test_id('bot-chat-minimized').locator('span:not(.cb-bot-face):not(.cb-bot-eyes)').count() == 0
     minimized_drag = page.get_by_test_id('bot-chat-minimized').locator('.cb-bot-face')
     minimized_drag_box = minimized_drag.bounding_box()
     page.mouse.move(minimized_drag_box['x'] + 12, minimized_drag_box['y'] + 12)
