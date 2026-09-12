@@ -4,6 +4,7 @@ import { getShanghaiGreeting as shanghaiGreeting } from './shanghai-greeting';
 import { loadPreview, createDraft, editDraft, approveDraft, saveDraft, completeTask, STORAGE_KEY } from './preview-store';
 import { scenes, rehearsalSnapshot, mailHistory, simulatedReceipt, type SimulatedReceipt } from './rehearsal';
 import { createBotAssistant } from './bot-assistant';
+import { remoteDeviceIcon, renderRemotePanel, type RemoteState } from './mobile-remote';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 const getShanghaiGreeting = (locale: 'zh' | 'en', date = new Date()) => shanghaiGreeting(locale, date);
@@ -29,6 +30,7 @@ export function mountWorkbench(root: HTMLElement, onIntro: () => void) {
   let view: View = 'overview', selected = 'TASK-001', step = -1, playing = false, timer = 0, clock = 0;
   let releaseArt = () => {}, menuOpen = false, filter = 'all', notice = '', focusMail = 'EMAIL-001';
   let receipt: SimulatedReceipt | null = null;
+  let remoteOpen = false, remoteState: RemoteState = 'waiting', remoteSeed = 1;
   const receiptKey = 'cardbot_simulated_receipt_v1';
   try { const value = JSON.parse(localStorage.getItem(receiptKey) || 'null'); if (value?.kind === 'simulation' && value.body === manual.draft.body && manual.draft.status === 'saved_local') receipt = value; } catch { /* Optional receipt. */ }
   const t = (zh: string, en: string) => locale === 'zh' ? zh : en;
@@ -43,6 +45,7 @@ export function mountWorkbench(root: HTMLElement, onIntro: () => void) {
   const missing = (id: string) => ({'TASK-001':t('新版价格、供应商确认交期','Revised price and supplier-confirmed delivery'),'TASK-002':t('汇总提交记录','Report submission record'),'TASK-003':t('完整地址与确认记录','Full address and customer confirmation')}[id] || '');
   const navs: [View,string,string,string][] = [['overview','◈','工作总览','Overview'],['workday','☷','今日工作','My workday'],['evidence','✉','客户与邮件','Customers & mail'],['drafts','▤','草稿与审核','Drafts & review'],['outbox','↗','小满草稿箱','OKKI draft box'],['team','◷','团队进度','Team progress'],['organization','⚙','企业设置','Organization']];
   const nameOf = (v: View) => { const n = navs.find(n => n[0] === v)!; return t(n[2],n[3]); };
+  const remoteTrigger = () => `<button class="wb-remote-trigger" data-wb-action="remote" data-testid="remote-trigger" aria-label="${t('手机远程设置','Mobile remote settings')}" title="${t('手机远程设置','Mobile remote settings')}">${remoteDeviceIcon()}</button>`;
   function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(manual)); if (receipt) localStorage.setItem(receiptKey, JSON.stringify(receipt)); else localStorage.removeItem(receiptKey); } catch { notice = t('浏览器存储不可用，请导出备份','Browser storage unavailable. Export a backup.'); } }
   function pause() { playing = false; window.clearTimeout(timer); }
   function schedule() {
@@ -109,6 +112,9 @@ export function mountWorkbench(root: HTMLElement, onIntro: () => void) {
     if(!isManager()&&['team','organization'].includes(view)) view='overview';
     const activeUser=users.find(u=>u.id===actor())!;
     root.innerHTML=`<div class="wb-shell ${menuOpen?'menu-open':''}"><aside class="wb-sidebar"><div class="wb-brand-row"><a class="wordmark" href="/">cardbot<span>®</span></a><span data-bot-slot></span></div><div class="wb-company"><span class="wb-avatar">C</span><div><strong>${t('全球贸易演示企业','Global Trade Demo')}</strong><small>${t('企业工作空间','Enterprise workspace')}</small></div></div><span class="wb-kicker nav-section">WORKSPACE</span><nav aria-label="${t('工作台导航','Workspace navigation')}">${navs.filter(n=>isManager()||!['team','organization'].includes(n[0])).map(([id,icon,zh,en])=>`<button class="wb-nav ${view===id?'active':''}" data-view="${id}" ${view===id?'aria-current="page"':''}><span aria-hidden="true">${icon}</span>${t(zh,en)}${id==='outbox'?`<small>${t('模拟','SIM')}</small>`:''}</button>`).join('')}</nav><div class="wb-sidebar-bottom"><div class="wb-connector"><span class="connection-dot"></span><div><strong>${t('演练连接已就绪','Rehearsal ready')}</strong><small>${t('真实小满 API 待授权','Real OKKI API awaits authorization')}</small></div></div>${btn(t('重看品牌开场','Replay brand intro'),'intro')}</div></aside><div class="wb-main"><header class="wb-topbar"><div class="wb-breadcrumb"><button class="wb-menu" data-wb-action="menu" aria-expanded="${menuOpen}" aria-label="${t('打开功能菜单','Open navigation')}">☰</button><span>${t('工作空间','Workspace')}</span><span>/</span><strong>${nameOf(view)}</strong></div><div class="wb-top-actions"><time id="local-time"></time>${btn(locale==='zh'?'EN':'中文','language')}${btn(document.documentElement.dataset.theme==='dark'?t('◐ 浅色','◐ Light'):t('◐ 深色','◐ Dark'),'theme')}<label class="wb-user"><span class="sr-only">${t('切换演示身份','Switch demo identity')}</span><select id="demo-user">${users.map(u=>`<option value="${u.id}" ${actor()===u.id?'selected':''}>${u.name} · ${t(u.zh.split(' · ')[0],u.en.split(' · ')[0])}</option>`).join('')}</select></label></div></header><div class="wb-mode"><span><i></i>${t('交互演示','INTERACTIVE DEMO')}</span><p>${t('虚构业务数据 · 小满模拟接入 · 不发送邮件','Fictional business data · simulated OKKI connection · no emails sent')}</p></div><main class="wb-content" id="operations">${view!=='overview'?`<div class="wb-page-heading"><div><span class="wb-kicker">${step>=0?scenes[step].time:'DEMO-DAY-001'} / ${activeUser.name}</span><h1>${nameOf(view)}</h1></div>${step<0?btn('▷ '+t('播放演练','Play rehearsal'),'tour-start',true):''}</div>${step>=0?playback():''}`:''}<div id="notice" class="wb-notice" role="status" ${notice?'':'hidden'}>${esc(notice)}</div>${view==='overview'?overview():view==='workday'?workday():view==='evidence'?evidence():view==='drafts'?draft():view==='outbox'?outbox():view==='team'?team():organization()}<footer class="wb-footer"><span>${t('事实优先，始终由人把关','Evidence first. Humans always.')}</span>${btn(t('导出演示数据','Export demo data'),'export')}</footer></main></div></div>`;
+    root.querySelector('.wb-nav[data-view="outbox"] small')?.remove();
+    root.querySelector('.wb-top-actions')?.insertAdjacentHTML('beforeend',remoteTrigger());
+    if(remoteOpen) root.insertAdjacentHTML('beforeend',renderRemotePanel(locale,remoteState,remoteSeed));
     botAssistant.mount({ locale, accountId:activeUser.id, accountName:activeUser.name });
     const canvas=root.querySelector<HTMLCanvasElement>('#text-earth');
     releaseArt=canvas?mountTextArt(canvas,'earth'):()=>{};
@@ -142,6 +148,12 @@ export function mountWorkbench(root: HTMLElement, onIntro: () => void) {
     if(action==='language'){locale=locale==='zh'?'en':'zh';localStorage.setItem('cardbot_locale',locale);render();return;}
     if(action==='theme'){document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('cardbot_theme',document.documentElement.dataset.theme);render();return;}
     if(action==='menu'){menuOpen=!menuOpen;render();return;}
+    if(action==='remote'){remoteOpen=true;remoteState='waiting';render();return;}
+    if(action==='remote-close'){remoteOpen=false;render();return;}
+    if(action==='remote-refresh'){remoteSeed+=1;remoteState='refreshed';render();return;}
+    if(action==='remote-copy'){navigator.clipboard?.writeText(location.href).catch(()=>{});remoteState='copied';render();return;}
+    if(action==='remote-stop'){remoteState='stopped';render();return;}
+    if(action==='remote-channel'){remoteState='channels';render();return;}
     if(action==='intro'){dispose();onIntro();return;}
     if(action==='export'){const payload={kind:step>=0?'cardbot-rehearsal-snapshot':'cardbot-fictional-preview',...state()};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='cardbot-demo.json';a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
     if(step>=0){pause();notice=t('当前是演练回放，退出演练即可手动操作','This is a rehearsal playback. Exit to work manually.');render();return;}
@@ -174,7 +186,9 @@ export function mountWorkbench(root: HTMLElement, onIntro: () => void) {
       root.querySelector('.save-receipt')?.remove();
     }
   }
-  function dispose(){pause();releaseArt();botAssistant.destroy();window.clearInterval(clock);root.removeEventListener('click',click);root.removeEventListener('change',change);root.removeEventListener('input',input);}
+  function keydown(event: KeyboardEvent){if(event.key==='Escape'&&remoteOpen){remoteOpen=false;render();}}
+  function dispose(){pause();releaseArt();botAssistant.destroy();window.clearInterval(clock);root.removeEventListener('click',click);root.removeEventListener('change',change);root.removeEventListener('input',input);document.removeEventListener('keydown',keydown);}
   root.addEventListener('click',click);root.addEventListener('change',change);root.addEventListener('input',input);
+  document.addEventListener('keydown',keydown);
   sessionStorage.setItem('cardbot_intro_v2','seen');render();return dispose;
 }

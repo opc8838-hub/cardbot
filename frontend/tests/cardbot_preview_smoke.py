@@ -30,6 +30,8 @@ with sync_playwright() as p:
     page.locator('[data-action="workspace"]').last.click()
     expect(page.locator('.wb-sidebar')).to_be_visible()
     assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
+    assert page.locator('.wb-nav[data-view="outbox"] small').count() == 0
+    expect(page.get_by_test_id('remote-trigger')).to_be_visible()
     expect(page.locator('#demo-user')).to_be_enabled()
     assert page.locator('.wb-topbar').evaluate("el => getComputedStyle(el).position") == 'sticky'
     assert page.locator('.wb-tour-invite').bounding_box()['height'] < 80
@@ -166,12 +168,24 @@ with sync_playwright() as p:
     expect(page.locator('.cb-expression')).to_have_count(16)
     expect(page.locator('.cb-color')).to_have_count(12)
     page.locator('[data-bot-action="expression"][data-value="heureux"]').click()
-    page.locator('[data-bot-action="color"][data-value="violet"]').click()
+    page.locator('[data-bot-action="color"][data-value="rouge"]').click()
     page.screenshot(path=str(ARTIFACTS / 'v4-bot-picker.png'), full_page=True)
     page.locator('[data-bot-action="picker-save"]').click()
     expect(page.get_by_test_id('bot-chat')).to_be_visible()
     expect(page.get_by_test_id('brand-bot')).to_have_attribute('data-configured', 'true')
     expect(page.get_by_test_id('brand-bot').locator('.cb-bot-face')).to_have_attribute('data-expression', 'heureux')
+    expect(page.locator('[data-bot-action="customize"]')).to_have_text('定制')
+    assert page.locator('[data-bot-action="customize"]').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(232, 72, 63)'
+    assert page.locator('.cb-chat-form .cb-bot-primary').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(232, 72, 63)'
+    before_drag = page.get_by_test_id('bot-chat').bounding_box()
+    drag_handle = page.locator('[data-bot-drag-handle]')
+    handle_box = drag_handle.bounding_box()
+    page.mouse.move(handle_box['x'] + 150, handle_box['y'] + 12)
+    page.mouse.down()
+    page.mouse.move(handle_box['x'] + 430, handle_box['y'] + 90, steps=8)
+    page.mouse.up()
+    after_drag = page.get_by_test_id('bot-chat').bounding_box()
+    assert after_drag['x'] > before_drag['x'] + 150
     page.locator('#bot-question').fill('报价流程怎么走？')
     page.locator('#bot-question').press('Enter')
     expect(page.locator('.cb-chat-messages .user')).to_have_count(1)
@@ -185,6 +199,7 @@ with sync_playwright() as p:
     action(page, 'language').click()
     action(page, 'theme').click()
     expect(page.get_by_test_id('bot-chat')).to_contain_text('no real knowledge base connected')
+    expect(page.locator('[data-bot-action="customize"]')).to_have_text('Customize')
     page.screenshot(path=str(ARTIFACTS / 'v4-bot-chat-dark-en.png'), full_page=True)
     page.locator('#demo-user').select_option('sales-02')
     expect(page.get_by_test_id('brand-bot')).to_have_attribute('data-configured', 'false')
@@ -192,6 +207,15 @@ with sync_playwright() as p:
     page.locator('#demo-user').select_option('sales-01')
     expect(page.get_by_test_id('brand-bot')).to_have_attribute('data-configured', 'true')
     expect(page.get_by_test_id('brand-bot').locator('.cb-bot-face')).to_have_attribute('data-expression', 'heureux')
+    page.get_by_test_id('remote-trigger').click()
+    expect(page.get_by_test_id('remote-dialog')).to_be_visible()
+    expect(page.get_by_test_id('remote-dialog')).to_contain_text('Mobile remote control')
+    expect(page.get_by_test_id('remote-dialog')).to_contain_text('WhatsApp')
+    assert page.get_by_test_id('remote-dialog').get_by_text('Telegram', exact=True).count() == 0
+    page.locator('[data-wb-action="remote-refresh"]').click()
+    expect(page.get_by_test_id('remote-dialog')).to_contain_text('QR code refreshed')
+    page.screenshot(path=str(ARTIFACTS / 'v4-mobile-remote-dark-en.png'), full_page=True)
+    page.locator('[data-wb-action="remote-close"]').last.click()
     no_overflow(page)
     assert not bot_errors, bot_errors
     bot_context.close()
@@ -215,6 +239,11 @@ with sync_playwright() as p:
                 no_overflow(page)
                 page.screenshot(path=str(ARTIFACTS / 'v4-bot-picker-mobile.png'), full_page=True)
                 page.locator('[data-bot-action="picker-close"]').click()
+                page.get_by_test_id('remote-trigger').click()
+                expect(page.get_by_test_id('remote-dialog')).to_be_visible()
+                no_overflow(page)
+                page.screenshot(path=str(ARTIFACTS / 'v4-mobile-remote-390.png'), full_page=True)
+                page.locator('[data-wb-action="remote-close"]').last.click()
         nav(page, 'evidence').click()
         no_overflow(page)
         action(page, 'tour-start').click()
@@ -224,4 +253,4 @@ with sync_playwright() as p:
         page.screenshot(path=str(ARTIFACTS / f'v3-rehearsal-{width}.png'), full_page=True)
         mobile.close()
     browser.close()
-print('PASS: workbench, personal CardBot picker/chat, bilingual themes, evidence, review gates, simulated save/failure, persistence, rehearsal playback/pause/rewind/isolation, roles and responsive layouts')
+print('PASS: workbench, personal CardBot picker/chat/drag/accent, mobile remote modal, bilingual themes, evidence, review gates, simulated save/failure, persistence, rehearsal playback/pause/rewind/isolation, roles and responsive layouts')

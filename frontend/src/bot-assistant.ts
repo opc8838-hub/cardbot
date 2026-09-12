@@ -4,6 +4,7 @@ type Locale = 'zh' | 'en';
 type Panel = 'closed' | 'picker' | 'chat' | 'minimized';
 type Message = { role: 'assistant' | 'user'; text: string };
 type BotConfig = { color: string; expression: string };
+type DragPosition = { x: number; y: number };
 
 const COLORS = [
   ['encre','#0a0a0c','墨黑','Ink'], ['brun','#8b5e3c','棕色','Brown'],
@@ -39,6 +40,12 @@ function face(config: BotConfig, size = '', alive = false) {
   return `<span class="cb-bot-face ${size} ${alive ? 'is-alive' : ''}" data-expression="${config.expression}" style="--bot-color:${color[1]};--bot-eye:${eye}" aria-hidden="true"><span class="cb-bot-eyes"><i class="cb-eye-slot left"><b></b></i><i class="cb-eye-slot right"><b></b></i></span></span>`;
 }
 
+function accentStyle(config: BotConfig) {
+  const color = COLORS.find(item => item[0] === config.color) || COLORS[0];
+  const darkText = new Set(['ambre','vert','turquoise','creme']);
+  return `--bot-accent:${color[1]};--bot-accent-text:${darkText.has(color[0]) ? '#171819' : '#ffffff'}`;
+}
+
 function replyFor(question: string, locale: Locale) {
   const lower = question.toLowerCase();
   if (/报价|quote|price/.test(lower)) return locale === 'zh'
@@ -69,6 +76,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   let config: BotConfig = { ...DEFAULT_CONFIG };
   let savedConfig: BotConfig = { ...DEFAULT_CONFIG };
   let messages: Message[] = [];
+  let dragPosition: DragPosition | null = null;
+  let drag: { pointerId: number; offsetX: number; offsetY: number; element: HTMLElement } | null = null;
   const t = (zh: string, en: string) => locale === 'zh' ? zh : en;
   const storageKey = () => `cardbot_bot_v1_${accountId}`;
 
@@ -80,6 +89,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     savedConfig = { ...config };
     messages = [];
     panel = 'closed';
+    dragPosition = null;
   }
 
   function greeting() {
@@ -91,8 +101,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function picker() {
-    return `<section class="cb-bot-popover cb-bot-picker" role="dialog" aria-modal="false" aria-labelledby="bot-picker-title" data-testid="bot-picker">
-      <header><div><span class="cb-bot-kicker">PERSONAL CARDBOT</span><h2 id="bot-picker-title">${t('选择你的 Bot','Choose your Bot')}</h2></div><button data-bot-action="picker-close" aria-label="${t('关闭选择器','Close picker')}">×</button></header>
+    return `<section class="cb-bot-popover cb-bot-picker" style="${accentStyle(config)}" role="dialog" aria-modal="false" aria-labelledby="bot-picker-title" data-testid="bot-picker">
+      <header data-bot-drag-handle><div><span class="cb-bot-kicker">PERSONAL CARDBOT</span><h2 id="bot-picker-title">${t('选择你的 Bot','Choose your Bot')}</h2></div><button data-bot-action="picker-close" aria-label="${t('关闭选择器','Close picker')}">×</button></header>
       <div class="cb-picker-preview">${face(config, 'large', true)}<div><strong>${accountName} ${t('的工作搭档','’s work companion')}</strong><p>${t('扑克牌外形固定；选择你喜欢的表情和颜色','The card shape stays fixed. Pick an expression and colour.')}</p></div></div>
       <div class="cb-picker-section"><h3>${t('表情','Expression')}</h3><div class="cb-expression-grid">${EXPRESSIONS.map(item => `<button class="cb-expression ${config.expression===item[0]?'selected':''}" data-bot-action="expression" data-value="${item[0]}" aria-pressed="${config.expression===item[0]}">${face({ ...config, expression:item[0] }, 'tiny')}<span>${t(item[1],item[2])}</span></button>`).join('')}</div></div>
       <div class="cb-picker-section"><h3>${t('颜色','Colour')}</h3><div class="cb-color-grid">${COLORS.map(item => `<button class="cb-color ${config.color===item[0]?'selected':''}" style="--swatch:${item[1]}" data-bot-action="color" data-value="${item[0]}" aria-label="${t(item[2],item[3])}" aria-pressed="${config.color===item[0]}"><i></i></button>`).join('')}</div></div>
@@ -101,13 +111,13 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function chat() {
-    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" data-testid="bot-chat-minimized">${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('知识助手演示','Knowledge assistant demo')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
+    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized">${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('知识助手演示','Knowledge assistant demo')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
     greeting();
     const suggestions = locale === 'zh'
       ? [['quote','报价流程怎么走？'],['mail','客户邮件回复要注意什么？'],['sample','公司的样品政策是什么？']]
       : [['quote','What is our quotation process?'],['mail','What should I check before replying?'],['sample','What is our sample policy?']];
-    return `<section class="cb-bot-popover cb-bot-chat" role="dialog" aria-modal="false" aria-labelledby="bot-chat-title" data-testid="bot-chat">
-      <header>${face(config,'mini',true)}<div><span class="cb-bot-kicker">COMPANY KNOWLEDGE · DEMO</span><h2 id="bot-chat-title">CardBot</h2></div><div class="cb-chat-controls"><button data-bot-action="customize" aria-label="${t('更换 Bot','Customize Bot')}">◇</button><button data-bot-action="minimize" aria-label="${t('最小化','Minimize')}">−</button><button data-bot-action="close" aria-label="${t('收回','Close')}">×</button></div></header>
+    return `<section class="cb-bot-popover cb-bot-chat" style="${accentStyle(config)}" role="dialog" aria-modal="false" aria-labelledby="bot-chat-title" data-testid="bot-chat">
+      <header data-bot-drag-handle>${face(config,'mini',true)}<div><span class="cb-bot-kicker">COMPANY KNOWLEDGE · DEMO</span><h2 id="bot-chat-title">CardBot</h2></div><div class="cb-chat-controls"><button class="cb-customize" data-bot-action="customize">${t('定制','Customize')}</button><button data-bot-action="minimize" aria-label="${t('最小化','Minimize')}">−</button><button data-bot-action="close" aria-label="${t('收回','Close')}">×</button></div></header>
       <div class="cb-chat-status"><i></i>${t('演示模式 · 未连接真实知识库','Demo mode · no real knowledge base connected')}</div>
       <div class="cb-chat-messages" aria-live="polite">${messages.map(message => `<p class="${message.role}"><span>${message.role==='assistant'?'BOT':accountName}</span>${escapeHtml(message.text)}</p>`).join('')}</div>
       <div class="cb-chat-suggestions">${suggestions.map(item => `<button data-bot-action="suggest" data-prompt="${item[0]}">${item[1]}</button>`).join('')}</div>
@@ -123,6 +133,11 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     slot.innerHTML = `<button class="cb-brand-bot ${configured?'':'needs-setup'}" data-bot-action="open" data-testid="brand-bot" data-configured="${configured}" aria-label="${configured?t('打开 CardBot 助手','Open CardBot assistant'):t('选择你的 CardBot','Choose your CardBot')}" title="${configured?t('打开知识助手','Open knowledge assistant'):t('选择你的 Bot','Choose your Bot')}">${face(config,'brand',true)}</button>`;
     if (panel === 'picker') root.insertAdjacentHTML('beforeend', picker());
     if (panel === 'chat' || panel === 'minimized') root.insertAdjacentHTML('beforeend', chat());
+    const popover = root.querySelector<HTMLElement>('.cb-bot-popover');
+    if (popover && dragPosition && window.innerWidth > 700) {
+      popover.style.left = `${dragPosition.x}px`; popover.style.top = `${dragPosition.y}px`;
+      popover.style.right = 'auto'; popover.style.bottom = 'auto';
+    }
   }
 
   function ask(question: string) {
@@ -166,8 +181,36 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     if (event.key === 'Escape' && panel !== 'closed') { panel='closed'; render(); }
   }
 
+  function pointerdown(event: PointerEvent) {
+    if (window.innerWidth <= 700 || event.button !== 0) return;
+    const target = event.target as HTMLElement;
+    const handle = target.closest<HTMLElement>('[data-bot-drag-handle]');
+    if (!handle || target.closest('button,input')) return;
+    const element = handle.closest<HTMLElement>('.cb-bot-popover'); if (!element) return;
+    const rect = element.getBoundingClientRect();
+    drag = { pointerId:event.pointerId, offsetX:event.clientX-rect.left, offsetY:event.clientY-rect.top, element };
+    handle.setPointerCapture?.(event.pointerId); element.classList.add('is-dragging'); event.preventDefault();
+  }
+
+  function pointermove(event: PointerEvent) {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const rect = drag.element.getBoundingClientRect();
+    const x = Math.max(8,Math.min(window.innerWidth-rect.width-8,event.clientX-drag.offsetX));
+    const y = Math.max(8,Math.min(window.innerHeight-rect.height-8,event.clientY-drag.offsetY));
+    dragPosition={x,y}; drag.element.style.left=`${x}px`; drag.element.style.top=`${y}px`;
+    drag.element.style.right='auto'; drag.element.style.bottom='auto';
+  }
+
+  function pointerup(event: PointerEvent) {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    drag.element.classList.remove('is-dragging'); drag=null;
+  }
+
   root.addEventListener('click',click);
   root.addEventListener('submit',submit);
+  root.addEventListener('pointerdown',pointerdown);
+  document.addEventListener('pointermove',pointermove);
+  document.addEventListener('pointerup',pointerup);
   document.addEventListener('keydown',keydown);
   return {
     mount(context) {
@@ -177,7 +220,9 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     },
     destroy() {
       root.removeEventListener('click',click); root.removeEventListener('submit',submit);
-      document.removeEventListener('keydown',keydown); root.querySelector('.cb-bot-popover')?.remove();
+      root.removeEventListener('pointerdown',pointerdown); document.removeEventListener('pointermove',pointermove);
+      document.removeEventListener('pointerup',pointerup); document.removeEventListener('keydown',keydown);
+      root.querySelector('.cb-bot-popover')?.remove();
     }
   };
 }
