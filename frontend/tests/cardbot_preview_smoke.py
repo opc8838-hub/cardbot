@@ -177,6 +177,9 @@ with sync_playwright() as p:
     expect(page.get_by_test_id('brand-bot')).to_have_attribute('data-configured', 'true')
     expect(page.get_by_test_id('brand-bot').locator('.cb-bot-face')).to_have_attribute('data-expression', 'heureux')
     expect(page.locator('[data-bot-action="customize"]')).to_have_text('定制')
+    expect(page.locator('.cb-chat-suggestions button')).to_have_count(8)
+    assert page.locator('.cb-chat-suggestions').evaluate("el => el.scrollWidth > el.clientWidth")
+    assert page.locator('.cb-chat-suggestions').evaluate("el => getComputedStyle(el).scrollbarWidth") == 'thin'
     assert page.locator('[data-bot-action="customize"]').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(232, 72, 63)'
     assert page.locator('.cb-chat-form .cb-bot-primary').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(232, 72, 63)'
     before_drag = page.get_by_test_id('bot-chat').bounding_box()
@@ -191,8 +194,13 @@ with sync_playwright() as p:
     page.locator('#bot-question').fill('报价流程怎么走？')
     page.locator('#bot-question').press('Enter')
     expect(page.locator('.cb-chat-messages .user')).to_have_count(1)
+    expect(page.locator('.cb-thinking')).to_be_visible()
     expect(page.locator('.cb-chat-messages .assistant')).to_have_count(2)
-    expect(page.get_by_test_id('bot-chat')).to_contain_text('演示回答')
+    expect(page.get_by_test_id('bot-chat')).to_contain_text('报价按四步执行')
+    expect(page.get_by_test_id('bot-chat')).not_to_contain_text('演示回答')
+    page.locator('[data-bot-action="suggest"][data-prompt="sample"]').click()
+    expect(page.locator('.cb-thinking')).to_be_visible()
+    expect(page.get_by_test_id('bot-chat')).to_contain_text('常规样品每位客户每次最多 2 件')
     page.screenshot(path=str(ARTIFACTS / 'v4-bot-chat.png'), full_page=True)
     page.locator('[data-bot-action="minimize"]').click()
     expect(page.get_by_test_id('bot-chat-minimized')).to_be_visible()
@@ -200,7 +208,7 @@ with sync_playwright() as p:
     expect(page.get_by_test_id('bot-chat')).to_be_visible()
     action(page, 'language').click()
     action(page, 'theme').click()
-    expect(page.get_by_test_id('bot-chat')).to_contain_text('no real knowledge base connected')
+    expect(page.get_by_test_id('bot-chat')).to_contain_text('Company knowledge ready')
     expect(page.locator('[data-bot-action="customize"]')).to_have_text('Customize')
     page.screenshot(path=str(ARTIFACTS / 'v4-bot-chat-dark-en.png'), full_page=True)
     page.locator('#demo-user').select_option('sales-02')

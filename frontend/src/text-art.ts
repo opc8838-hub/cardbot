@@ -15,7 +15,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
   const points: { lat: number; lon: number; land: boolean; word: string }[] = [];
   function sampleEarth() {
     points.length = 0;
-    const radius = Math.min(w, h) * .455;
+    const radius = Math.min(w, h) * .475;
     const size = Math.max(10, Math.min(14, radius * .041));
     const latStep = Math.max(3.2, size * 1.25 / radius * 180 / Math.PI);
     const lonStep = Math.max(8, size * 4.3 / radius * 180 / Math.PI);
@@ -44,7 +44,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
       }
       return;
     }
-    const r = Math.min(w, h) * .455, rad = Math.PI / 180;
+    const r = Math.min(w, h) * .475, rad = Math.PI / 180;
     ctx.strokeStyle = `rgba(${color},.24)`; ctx.lineWidth = .8;
     ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.stroke();
     for (const p of points) {
@@ -75,7 +75,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
     frame = requestAnimationFrame(tick);
     if (!active || document.hidden || now - last < 42) return;
     const delta = Math.min(100, now - last); last = now;
-    if (kind === "earth" && !drag && !reduced.matches) rotation += delta * .0028;
+    if (kind === "earth" && !drag && !reduced.matches) rotation += delta * .0039;
     if (kind === "earth") { draw(); onRotate?.(-rotation); }
   }
   canvas.addEventListener("pointerdown", event => { if (kind !== "earth") return; drag = true; previousX = event.clientX; canvas.setPointerCapture(event.pointerId); });

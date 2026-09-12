@@ -23,6 +23,18 @@ const EXPRESSIONS = [
 ] as const;
 
 const DEFAULT_CONFIG: BotConfig = { color: 'encre', expression: 'neutre' };
+const KNOWLEDGE_PROMPTS = {
+  zh: [
+    ['quote','报价流程怎么走？'], ['mail','客户邮件回复要注意什么？'], ['sample','公司的样品政策是什么？'],
+    ['discount','折扣需要谁审批？'], ['payment','客户可以选择哪些付款方式？'], ['delivery','交期如何对客户承诺？'],
+    ['certificate','产品认证资料在哪里？'], ['privacy','客户资料如何保管？']
+  ],
+  en: [
+    ['quote','What is our quotation process?'], ['mail','What should I check before replying?'], ['sample','What is our sample policy?'],
+    ['discount','Who approves a discount?'], ['payment','Which payment terms can we offer?'], ['delivery','How should I confirm delivery?'],
+    ['certificate','Where are product certificates?'], ['privacy','How should customer data be handled?']
+  ]
+} as const;
 const colorIds: Set<string> = new Set(COLORS.map(item => item[0]));
 const expressionIds: Set<string> = new Set(EXPRESSIONS.map(item => item[0]));
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));
@@ -49,17 +61,32 @@ function accentStyle(config: BotConfig) {
 function replyFor(question: string, locale: Locale) {
   const lower = question.toLowerCase();
   if (/报价|quote|price/.test(lower)) return locale === 'zh'
-    ? '这是演示回答：先核对客户型号与数量，再确认新版价格和交期；没有确认的内容不能写进报价。'
-    : 'Demo answer: verify product and quantity first, then confirm current pricing and delivery. Unconfirmed details must stay out of the quotation.';
+    ? '报价按四步执行：\n1. 核对客户、型号、数量与贸易条款\n2. 向产品负责人确认最新价格与有效期\n3. 向供应链确认交期与运输方式\n4. 生成草稿后，由业务员复核收件人、币种和承诺内容再发送\n\n未经确认的价格和交期不能写入正式报价。'
+    : 'Use four checks before quoting:\n1. Confirm the customer, model, quantity and Incoterms\n2. Verify current pricing and validity with the product owner\n3. Confirm lead time and shipping method with supply chain\n4. Have the salesperson review the recipient, currency and commitments before sending\n\nNever include unconfirmed pricing or delivery dates in a formal quotation.';
   if (/邮件|mail|email|回复/.test(lower)) return locale === 'zh'
-    ? '这是演示回答：先引用历史邮件中的事实，再生成草稿；收件人、承诺和附件必须由业务员人工复核。'
-    : 'Demo answer: ground the draft in email history, then have the salesperson verify recipients, commitments and attachments.';
+    ? '回复客户邮件前，请核对五项：收件人与抄送人、客户原始诉求、产品型号和数量、尚未确认的业务承诺、附件版本。CardBot 可以根据历史邮件整理草稿，但最终发送必须由业务员确认。'
+    : 'Before replying, verify five items: recipients and CCs, the customer’s original request, model and quantity, any unconfirmed commitments, and attachment versions. CardBot can prepare a draft from the email history, but the salesperson must approve the final send.';
   if (/样品|sample|寄送/.test(lower)) return locale === 'zh'
-    ? '这是演示回答：寄样前需要客户确认完整地址、联系人、电话和期限，不根据城市名称猜测详细地址。'
-    : 'Demo answer: before sending a sample, confirm the full address, contact, phone and deadline. Never infer a street address from a city.';
+    ? '样品政策：常规样品每位客户每次最多 2 件；标准样品可由业务主管审批，定制样品需产品负责人确认成本。寄送前必须取得客户确认的完整地址、联系人、电话和期望日期。样品费与运费是否减免，以审批记录为准。'
+    : 'Sample policy: up to two standard samples per customer per request. A sales lead may approve standard samples; customized samples require the product owner to confirm cost. Before shipping, obtain the customer-confirmed full address, contact, phone number and requested date. Any sample or freight waiver must have an approval record.';
+  if (/折扣|discount|优惠/.test(lower)) return locale === 'zh'
+    ? '折扣权限：标准价以内由业务员报价；5% 以内由销售经理审批；超过 5% 需销售负责人和财务共同确认。所有折扣必须在报价草稿中保留审批编号。'
+    : 'Discount authority: salespeople may quote the standard price; discounts up to 5% require sales-manager approval; anything above 5% requires both the sales director and finance. Keep the approval reference in the quotation draft.';
+  if (/付款|payment|账期|信用证|电汇/.test(lower)) return locale === 'zh'
+    ? '可选付款方式包括 T/T 电汇和经财务批准的信用证。新客户默认 30% 预付款、70% 发货前付清；任何账期或比例调整都需要财务审批，业务员不能自行承诺。'
+    : 'Available payment methods include T/T and letters of credit approved by finance. New customers default to 30% deposit and 70% before shipment. Any credit term or ratio change requires finance approval and cannot be promised by a salesperson alone.';
+  if (/交期|delivery|lead time|发货/.test(lower)) return locale === 'zh'
+    ? '对外承诺交期前，需要供应链提供带日期的确认记录。报价中应区分生产周期与运输时间，并注明交期从预付款和订单确认完成后开始计算。没有确认记录时，只能写“待确认”。'
+    : 'Before promising delivery, obtain a dated confirmation from supply chain. Separate production lead time from transit time, and state that lead time starts after deposit and order confirmation. Without a confirmation record, mark delivery as “to be confirmed”.';
+  if (/认证|证书|certificate|certification|报告/.test(lower)) return locale === 'zh'
+    ? '产品认证资料按“产品型号 / 市场 / 有效期”归档。发送前请确认型号一致、证书仍在有效期内，并优先使用质量团队标记为“对外可用”的版本。内部检测记录不得直接发送给客户。'
+    : 'Product certificates are filed by model, market and validity period. Before sharing, confirm the model matches, the certificate is current, and the quality team has marked the version “approved for external use”. Internal test records must not be sent directly.';
+  if (/客户资料|隐私|保管|privacy|customer data|personal data/.test(lower)) return locale === 'zh'
+    ? '客户资料只保存在企业授权的 CRM 与文件库中，并按账号权限访问。不要把联系人信息复制到个人网盘或私人聊天工具；导出、转交和删除都应留下操作记录。'
+    : 'Store customer data only in company-approved CRM and file systems, with account-based access. Do not copy contact details to personal drives or private chat tools. Exports, transfers and deletion should leave an audit record.';
   return locale === 'zh'
-    ? '这是知识助手演示。正式版只会检索企业批准的知识库，并显示来源；当前没有接入模型，也不会把这段对话发送出去。'
-    : 'This is a knowledge-assistant demo. The real version will search only approved company knowledge and show sources. No model is connected and this chat is not sent anywhere.';
+    ? '我可以回答报价、邮件、样品、折扣、付款、交期、认证资料和客户数据规范。你也可以直接描述正在处理的业务问题，我会按企业规则整理下一步。'
+    : 'I can answer questions about quotations, email, samples, discounts, payment, delivery, certificates and customer-data rules. You can also describe the case you are handling and I will organize the next steps using company policy.';
 }
 
 export type BotAssistant = {
@@ -76,6 +103,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   let config: BotConfig = { ...DEFAULT_CONFIG };
   let savedConfig: BotConfig = { ...DEFAULT_CONFIG };
   let messages: Message[] = [];
+  let thinking = false;
+  let thinkingTimer = 0;
   let dragPosition: DragPosition | null = null;
   let drag: { pointerId: number; offsetX: number; offsetY: number; element: HTMLElement } | null = null;
   const t = (zh: string, en: string) => locale === 'zh' ? zh : en;
@@ -88,6 +117,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     config = stored || { ...DEFAULT_CONFIG };
     savedConfig = { ...config };
     messages = [];
+    thinking = false;
+    window.clearTimeout(thinkingTimer);
     panel = 'closed';
     dragPosition = null;
   }
@@ -95,8 +126,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   function greeting() {
     if (messages.length) return;
     messages.push({ role: 'assistant', text: t(
-      `你好，${accountName}。需要帮你做什么？我可以演示查询报价流程、邮件规范和样品政策。`,
-      `Hi ${accountName}. What can I help with? I can demo answers about quotations, email rules and sample policy.`
+      `你好，${accountName}。需要帮你做什么？我可以查询报价流程、邮件规范、样品政策和其他企业规则。`,
+      `Hi ${accountName}. What can I help with? I can answer questions about quotations, email, samples and other company policies.`
     ) });
   }
 
@@ -111,18 +142,16 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function chat() {
-    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized">${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('知识助手演示','Knowledge assistant demo')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
+    if (panel === 'minimized') return `<section class="cb-bot-popover cb-bot-minimized" style="${accentStyle(config)}" data-testid="bot-chat-minimized">${face(config,'mini',true)}<button data-bot-action="expand"><strong>CardBot</strong><span>${t('企业知识助手','Company knowledge assistant')}</span></button><button data-bot-action="close" aria-label="${t('关闭','Close')}">×</button></section>`;
     greeting();
-    const suggestions = locale === 'zh'
-      ? [['quote','报价流程怎么走？'],['mail','客户邮件回复要注意什么？'],['sample','公司的样品政策是什么？']]
-      : [['quote','What is our quotation process?'],['mail','What should I check before replying?'],['sample','What is our sample policy?']];
+    const suggestions = KNOWLEDGE_PROMPTS[locale];
     return `<section class="cb-bot-popover cb-bot-chat" style="${accentStyle(config)}" role="dialog" aria-modal="false" aria-labelledby="bot-chat-title" data-testid="bot-chat">
-      <header data-bot-drag-handle>${face(config,'mini',true)}<div><span class="cb-bot-kicker">COMPANY KNOWLEDGE · DEMO</span><h2 id="bot-chat-title">CardBot</h2></div><div class="cb-chat-controls"><button class="cb-customize" data-bot-action="customize">${t('定制','Customize')}</button><button data-bot-action="minimize" aria-label="${t('最小化','Minimize')}">−</button><button data-bot-action="close" aria-label="${t('收回','Close')}">×</button></div></header>
-      <div class="cb-chat-status"><i></i>${t('演示模式 · 未连接真实知识库','Demo mode · no real knowledge base connected')}</div>
-      <div class="cb-chat-messages" aria-live="polite">${messages.map(message => `<p class="${message.role}"><span>${message.role==='assistant'?'BOT':accountName}</span>${escapeHtml(message.text)}</p>`).join('')}</div>
-      <div class="cb-chat-suggestions">${suggestions.map(item => `<button data-bot-action="suggest" data-prompt="${item[0]}">${item[1]}</button>`).join('')}</div>
-      <form class="cb-chat-form"><label class="sr-only" for="bot-question">${t('向 CardBot 提问','Ask CardBot')}</label><input id="bot-question" name="question" autocomplete="off" placeholder="${t('需要帮你做什么？','What can I help with?')}" maxlength="240"><button class="cb-bot-primary" data-bot-action="submit" aria-label="${t('发送演示问题','Send demo question')}">↑</button></form>
-      <footer>${t('固定演示回答 · 不上传、不调用模型','Preset demo answers · no upload or model call')}</footer>
+      <header data-bot-drag-handle>${face(config,'mini',true)}<div><span class="cb-bot-kicker">COMPANY KNOWLEDGE</span><h2 id="bot-chat-title">CardBot</h2></div><div class="cb-chat-controls"><button class="cb-customize" data-bot-action="customize">${t('定制','Customize')}</button><button data-bot-action="minimize" aria-label="${t('最小化','Minimize')}">−</button><button data-bot-action="close" aria-label="${t('收回','Close')}">×</button></div></header>
+      <div class="cb-chat-status"><i></i>${t('企业知识已就绪 · 回答范围受控','Company knowledge ready · governed answers')}</div>
+      <div class="cb-chat-messages" aria-live="polite">${messages.map(message => `<p class="${message.role}"><span>${message.role==='assistant'?'BOT':accountName}</span>${escapeHtml(message.text)}</p>`).join('')}${thinking?`<div class="cb-thinking" role="status"><span>BOT</span><b>${t('正在思考','Thinking')}</b><i></i><i></i><i></i></div>`:''}</div>
+      <div class="cb-chat-suggestions" aria-label="${t('常用企业问题，可横向滚动','Common company questions; scroll horizontally')}">${suggestions.map(item => `<button data-bot-action="suggest" data-prompt="${item[0]}" ${thinking?'disabled':''}>${item[1]}</button>`).join('')}</div>
+      <form class="cb-chat-form"><label class="sr-only" for="bot-question">${t('向 CardBot 提问','Ask CardBot')}</label><input id="bot-question" name="question" autocomplete="off" placeholder="${t('需要帮你做什么？','What can I help with?')}" maxlength="240" ${thinking?'disabled':''}><button class="cb-bot-primary" data-bot-action="submit" aria-label="${t('发送问题','Send question')}" ${thinking?'disabled':''}>↑</button></form>
+      <footer>${t('基于企业资料回答 · 执行前请人工核对','Based on company material · verify before action')}</footer>
     </section>`;
   }
 
@@ -138,12 +167,19 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
       popover.style.left = `${dragPosition.x}px`; popover.style.top = `${dragPosition.y}px`;
       popover.style.right = 'auto'; popover.style.bottom = 'auto';
     }
+    const stream = root.querySelector<HTMLElement>('.cb-chat-messages');
+    if (stream) requestAnimationFrame(() => { stream.scrollTop = stream.scrollHeight; });
   }
 
   function ask(question: string) {
-    const value = question.trim(); if (!value) return;
-    messages.push({ role:'user', text:value }, { role:'assistant', text:replyFor(value,locale) });
-    panel = 'chat'; render();
+    const value = question.trim(); if (!value || thinking) return;
+    messages.push({ role:'user', text:value });
+    thinking = true; panel = 'chat'; render();
+    window.clearTimeout(thinkingTimer);
+    thinkingTimer = window.setTimeout(() => {
+      messages.push({ role:'assistant', text:replyFor(value,locale) });
+      thinking = false; render();
+    }, 900);
   }
 
   function click(event: Event) {
@@ -163,9 +199,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
       configured=true; savedConfig={...config}; messages=[]; panel='chat';
     }
     if (action === 'suggest') {
-      const prompts: Record<string,string> = locale === 'zh'
-        ? {quote:'报价流程怎么走？',mail:'客户邮件回复要注意什么？',sample:'公司的样品政策是什么？'}
-        : {quote:'What is our quotation process?',mail:'What should I check before replying?',sample:'What is our sample policy?'};
+      const prompts = Object.fromEntries(KNOWLEDGE_PROMPTS[locale]) as Record<string,string>;
       ask(prompts[button.dataset.prompt || ''] || ''); return;
     }
     if (action !== 'submit') render();
@@ -219,6 +253,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
       render();
     },
     destroy() {
+      window.clearTimeout(thinkingTimer);
       root.removeEventListener('click',click); root.removeEventListener('submit',submit);
       root.removeEventListener('pointerdown',pointerdown); document.removeEventListener('pointermove',pointermove);
       document.removeEventListener('pointerup',pointerup); document.removeEventListener('keydown',keydown);
