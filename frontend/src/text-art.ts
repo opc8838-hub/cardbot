@@ -69,7 +69,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
     frame = requestAnimationFrame(tick);
     if (!active || document.hidden || now - last < 42) return;
     const delta = Math.min(100, now - last); last = now;
-    if (kind === "earth" && !drag && !reduced.matches) rotation += delta * .0018;
+    if (kind === "earth" && !drag && !reduced.matches) rotation += delta * .0028;
     if (kind === "earth") { draw(); onRotate?.(-rotation); }
   }
   canvas.addEventListener("pointerdown", event => { if (kind !== "earth") return; drag = true; previousX = event.clientX; canvas.setPointerCapture(event.pointerId); });
