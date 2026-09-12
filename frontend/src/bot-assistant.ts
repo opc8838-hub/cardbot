@@ -106,7 +106,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   let thinking = false;
   let thinkingTimer = 0;
   let dragPosition: DragPosition | null = null;
-  let drag: { pointerId: number; offsetX: number; offsetY: number; element: HTMLElement } | null = null;
+  let drag: { pointerId: number; offsetX: number; offsetY: number; startX: number; startY: number; moved: boolean; element: HTMLElement } | null = null;
+  let suppressClick = false;
   const t = (zh: string, en: string) => locale === 'zh' ? zh : en;
   const storageKey = () => `cardbot_bot_v1_${accountId}`;
 
@@ -183,6 +184,7 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
   }
 
   function click(event: Event) {
+    if (suppressClick) { suppressClick=false; event.preventDefault(); return; }
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-bot-action]');
     if (!button) return;
     const action = button.dataset.botAction;
@@ -219,15 +221,20 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
     if ((window.innerWidth <= 700 && panel !== 'minimized') || event.button !== 0) return;
     const target = event.target as HTMLElement;
     const handle = target.closest<HTMLElement>('[data-bot-drag-handle]');
-    if (!handle || target.closest('button,input')) return;
+    if (!handle || target.closest('input')) return;
+    const actionButton = target.closest<HTMLButtonElement>('[data-bot-action]');
+    if (actionButton && !(panel === 'minimized' && actionButton.dataset.botAction === 'expand')) return;
     const element = handle.closest<HTMLElement>('.cb-bot-popover'); if (!element) return;
     const rect = element.getBoundingClientRect();
-    drag = { pointerId:event.pointerId, offsetX:event.clientX-rect.left, offsetY:event.clientY-rect.top, element };
-    handle.setPointerCapture?.(event.pointerId); element.classList.add('is-dragging'); event.preventDefault();
+    drag = { pointerId:event.pointerId, offsetX:event.clientX-rect.left, offsetY:event.clientY-rect.top, startX:event.clientX, startY:event.clientY, moved:false, element };
+    element.classList.add('is-dragging');
   }
 
   function pointermove(event: PointerEvent) {
     if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!drag.moved && Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY) < 4) return;
+    drag.moved=true;
+    event.preventDefault();
     const rect = drag.element.getBoundingClientRect();
     const x = Math.max(8,Math.min(window.innerWidth-rect.width-8,event.clientX-drag.offsetX));
     const y = Math.max(8,Math.min(window.innerHeight-rect.height-8,event.clientY-drag.offsetY));
@@ -237,6 +244,8 @@ export function createBotAssistant(root: HTMLElement): BotAssistant {
 
   function pointerup(event: PointerEvent) {
     if (!drag || drag.pointerId !== event.pointerId) return;
+    suppressClick=drag.moved;
+    if (suppressClick) window.setTimeout(()=>{suppressClick=false;},0);
     drag.element.classList.remove('is-dragging'); drag=null;
   }
 

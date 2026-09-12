@@ -189,6 +189,12 @@ with sync_playwright() as p:
     assert page.locator('.cb-chat-suggestions').evaluate("el => getComputedStyle(el).scrollbarWidth") == 'thin'
     assert page.locator('[data-bot-action="customize"]').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(232, 72, 63)'
     assert page.locator('.cb-chat-form .cb-bot-primary').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(232, 72, 63)'
+    page.locator('[data-bot-action="minimize"]').click()
+    default_minimized = page.get_by_test_id('bot-chat-minimized').bounding_box()
+    assert 26 <= default_minimized['x'] <= 30
+    assert default_minimized['y'] + default_minimized['height'] <= 978
+    page.locator('[data-bot-action="expand"]').click()
+    expect(page.get_by_test_id('bot-chat')).to_be_visible()
     before_drag = page.get_by_test_id('bot-chat').bounding_box()
     drag_handle = page.locator('[data-bot-drag-handle]')
     handle_box = drag_handle.bounding_box()
@@ -216,7 +222,7 @@ with sync_playwright() as p:
     assert minimized_before['height'] <= 50
     expect(page.get_by_test_id('bot-chat-minimized').locator('strong')).to_have_text('CardBot')
     assert page.get_by_test_id('bot-chat-minimized').locator('span:not(.cb-bot-face):not(.cb-bot-eyes)').count() == 0
-    minimized_drag = page.get_by_test_id('bot-chat-minimized').locator('.cb-bot-face')
+    minimized_drag = page.get_by_test_id('bot-chat-minimized').locator('[data-bot-action="expand"]')
     minimized_drag_box = minimized_drag.bounding_box()
     page.mouse.move(minimized_drag_box['x'] + 12, minimized_drag_box['y'] + 12)
     page.mouse.down()
