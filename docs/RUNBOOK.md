@@ -97,6 +97,7 @@ npm run dev --workspace backend
 | --- | --- | --- |
 | 代码/文档/测试/锁文件 | Git | 是，必须已 commit/push |
 | 演示任务/草稿 | 浏览器 localStorage `cardbot_preview_v1` | 否；可点 Export 备份，仅导出，无导入 UI |
+| 每个演示账号的 Bot 表情/颜色 | 浏览器 localStorage `cardbot_bot_v1_<accountId>` | 否；只是个人视觉偏好，不含真实账号资料 |
 | 主题 | localStorage `cardbot_theme` | 否 |
 | 已看过动画 | sessionStorage `cardbot_intro_v2` | 否 |
 | 真实 CRM 数据 | 配置的数据库 | 否；需授权备份恢复/共享服务 |

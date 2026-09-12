@@ -26,6 +26,14 @@ property of their upstream authors.
 | Component | Version | Upstream | License | Role |
 | --- | --- | --- | --- | --- |
 | `postal-mime` | 3.0.0 | [postalsys/postal-mime](https://github.com/postalsys/postal-mime) | MIT-0 | Parse local RFC822/EML history into traceable email evidence |
+| `opc8838-hub/bot` / `jeremy-prt/bloub` | reference commit `abe73db` | [opc8838-hub/bot](https://github.com/opc8838-hub/bot) | MIT | Visual reference and catalogue for the playing-card avatar, 12 colours and 16 expressions |
+
+The workbench Bot is a lightweight HTML/CSS implementation written for
+CardBot; it does not bundle the referenced Vue editor or its complete render
+engine. The reference project's MIT notice is retained at
+`LICENSES/bloub-MIT.txt`. Its repository states that its design imitates
+x.ai and is not affiliated with x.ai; CardBot likewise makes no affiliation
+claim.
 
 The v2 text-earth preview also uses `d3-geo`, `topojson-client`, and
 `world-atlas`, under ISC licenses as declared by the installed packages.

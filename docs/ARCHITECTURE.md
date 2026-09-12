@@ -14,7 +14,8 @@
 ```text
 浏览器
  ├─ / → Vite 新预览 → preview-store → localStorage（虚构数据）
- │         └─ text-art → world-atlas + Canvas（不请求客户地址）
+ │        ├─ text-art → world-atlas + Canvas（不请求客户地址）
+ │        └─ bot-assistant → 账号级 Bot 配置 + 本地预置问答（不请求模型）
  └─ /crm.html → 旧 CRM 前端 → /api → Express（需要登录）
                                     ├─ Workday：同批任务 / 权限 / 状态依据
                                     ├─ EML → PostalMime → 事实引用
@@ -35,6 +36,8 @@
 | `frontend/src/cardbot-preview.ts` | 多语言开场、CARD 品牌页及工作台挂载 |
 | `frontend/src/workbench.ts` | 工作台导航、七类业务视图、手动操作与演练播放控制 |
 | `frontend/src/workbench.css` | 左侧栏、业务内容、演练控制及响应式布局 |
+| `frontend/src/bot-assistant.ts` | 扑克牌 Bot 选择、账号级保存、对话/缩小/关闭与预置演示回答 |
+| `frontend/src/bot-assistant.css` | Bot 表情、眨眼/眼神动画、选择器与中英/深浅色对话框布局 |
 | `frontend/src/rehearsal.ts` | 七步确定性快照、虚构历史邮件、显式模拟回执 |
 | `frontend/src/cardbot-preview.css` | 黑白主题、版式、响应式规范 |
 | `frontend/src/preview-store.ts` | 独立演示任务/草稿状态规则 |
