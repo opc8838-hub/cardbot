@@ -27,6 +27,14 @@ property of their upstream authors.
 | --- | --- | --- | --- | --- |
 | `postal-mime` | 3.0.0 | [postalsys/postal-mime](https://github.com/postalsys/postal-mime) | MIT-0 | Parse local RFC822/EML history into traceable email evidence |
 
+The v2 text-earth preview also uses `d3-geo`, `topojson-client`, and
+`world-atlas`, under ISC licenses as declared by the installed packages.
+Exact versions are recorded in the root lockfile. Their copyright and license
+texts must remain with redistributed package/bundle copies. `d3-geo` also
+includes a GeographicLib notice; retain its complete package LICENSE.
+The background geography is generated from the installed world-atlas land
+geometry; it is not copied from the user's reference screenshot.
+
 The CRM and Communication applications also use React, Express, Vite,
 PostgreSQL/MySQL clients, Socket.IO, Lucide, BullMQ and other packages. Their
 copyright and license notices remain in the installed package trees and are
