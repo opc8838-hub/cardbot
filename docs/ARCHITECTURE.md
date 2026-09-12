@@ -32,7 +32,10 @@
 | 文件 | 职责 |
 | --- | --- |
 | `frontend/index.html` | 新预览默认入口，轻量 HTML |
-| `frontend/src/cardbot-preview.ts` | 入口分段、导航、工作台渲染与用户操作 |
+| `frontend/src/cardbot-preview.ts` | 多语言开场、CARD 品牌页及工作台挂载 |
+| `frontend/src/workbench.ts` | 工作台导航、七类业务视图、手动操作与演练播放控制 |
+| `frontend/src/workbench.css` | 左侧栏、业务内容、演练控制及响应式布局 |
+| `frontend/src/rehearsal.ts` | 七步确定性快照、虚构历史邮件、显式模拟回执 |
 | `frontend/src/cardbot-preview.css` | 黑白主题、版式、响应式规范 |
 | `frontend/src/preview-store.ts` | 独立演示任务/草稿状态规则 |
 | `frontend/src/text-art.ts` | CARD 字形采样与文字地球投影 |
@@ -69,6 +72,8 @@
 接口与领域细节以源码 Zod schema、类型和测试为准，不把文档表当作可绕过权限的调用说明。
 
 ## 数据语义
+
+演练使用 `rehearsalSnapshot(index)` 重建独立状态，不写入手动 `preview-store`。模拟草稿箱回执标记 `kind: simulation`，手动回执单独保存在 `cardbot_simulated_receipt_v1`；修改正文会清除回执。它不调用后端 `OkkiConnector`，不代表端点已完成接入。当前 Jojo 拥有全部三项样例任务，其他演示业务员是空状态。
 
 **任务**：稳定任务 ID、来源、所属人/团队、截止时间是否确定、状态、完成依据。早晚不复制出彼此独立的记录。
 

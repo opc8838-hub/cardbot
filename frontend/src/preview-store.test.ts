@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { freshPreview, createDraft, editDraft, approveDraft, saveDraft, completeTask } from "./preview-store";
+import { rehearsalSnapshot, simulatedReceipt, scenes } from './rehearsal';
 const state = freshPreview();
 const ids = state.tasks.map(t => t.id);
 assert.throws(() => saveDraft(state));
@@ -21,3 +22,18 @@ assert.deepEqual(state.tasks.map(t => t.id), ids);
 assert.equal(state.tasks[1].status, "done");
 assert.equal(state.tasks[1].evidence, "Report reference 001");
 console.log("PASS: 13 preview domain assertions");
+const preserved = JSON.stringify(state);
+for (let i = 0; i < scenes.length; i++) {
+  const snapshot = rehearsalSnapshot(i);
+  assert.deepEqual(snapshot.tasks.map(t => t.id), ids);
+  assert.equal(snapshot.tasks[0].status, 'needs_confirmation');
+  assert.equal(snapshot.tasks.filter(t => t.status === 'done').length, i >= 5 ? 2 : 0);
+  if (i < 4) assert.throws(() => simulatedReceipt(snapshot));
+  else assert.equal(simulatedReceipt(snapshot).kind, 'simulation');
+}
+assert.equal(rehearsalSnapshot(2).draft.status, 'awaiting_review');
+assert.equal(rehearsalSnapshot(0).draft.status, 'empty');
+assert.equal(JSON.stringify(state), preserved);
+assert.deepEqual(rehearsalSnapshot(4), rehearsalSnapshot(4));
+assert.throws(() => rehearsalSnapshot(-1));
+console.log('PASS: rehearsal review gates, same-batch progress, rewind, isolation and simulated receipt');

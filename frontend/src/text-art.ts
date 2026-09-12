@@ -13,9 +13,14 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
   const maskCtx = mask.getContext("2d")!;
   let w = 1, h = 1, rotation = -100, frame = 0, last = 0, drag = false, previousX = 0, active = true;
   const points: { lat: number; lon: number; land: boolean; word: string }[] = [];
-  if (kind === "earth") {
-    for (let lat = -84; lat <= 84; lat += 3.2) {
-      const step = 8 / Math.max(.2, Math.cos(lat * Math.PI / 180));
+  function sampleEarth() {
+    points.length = 0;
+    const radius = Math.min(w, h) * .455;
+    const size = Math.max(10, Math.min(14, radius * .041));
+    const latStep = Math.max(3.2, size * 1.25 / radius * 180 / Math.PI);
+    const lonStep = Math.max(8, size * 4.3 / radius * 180 / Math.PI);
+    for (let lat = -84; lat <= 84; lat += latStep) {
+      const step = lonStep / Math.max(.2, Math.cos(lat * Math.PI / 180));
       for (let lon = -180; lon < 180; lon += step) points.push({ lat, lon, land: geoContains(land, [lon, lat]), word: vocabulary[points.length % vocabulary.length] });
     }
   }
@@ -48,7 +53,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
       if (z <= .03) continue;
       const x = w / 2 + Math.cos(latitude) * Math.sin(longitude) * r;
       const y = h / 2 - Math.sin(latitude) * r;
-      ctx.font = `${Math.max(8, Math.min(14, r * .041))}px Consolas, monospace`;
+      ctx.font = `${Math.max(10, Math.min(14, r * .041))}px Consolas, monospace`;
       ctx.fillStyle = `rgba(${color},${p.land ? .32 + z * .64 : .022 + z * .055})`;
       ctx.save(); ctx.translate(x, y); ctx.scale(Math.max(.25, z), 1);
       ctx.fillText(p.word, -r * .03, 0); ctx.restore();
@@ -63,6 +68,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
       maskCtx.textAlign = "center"; maskCtx.textBaseline = "middle";
       maskCtx.save(); maskCtx.translate(w / 2, h * .51); maskCtx.scale(.98, h / (w * .42)); maskCtx.fillText("CARD", 0, 0); maskCtx.restore();
     }
+    if (kind === "earth") sampleEarth();
     draw();
   }
   function tick(now: number) {
