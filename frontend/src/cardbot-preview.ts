@@ -11,6 +11,15 @@ type Locale = "zh" | "en";
 let selected = "TASK-001", currentView = "workday", currentScreen: "hello" | "manifesto" | "workspace" = "hello", disposeArt = () => {}, clock = 0, cancelled = false;
 let locale: Locale = localStorage.getItem("cardbot_locale") === "en" ? "en" : "zh";
 let selectedMarket = localStorage.getItem("cardbot_market") || "Asia/Shanghai";
+type DemoRole = "manager" | "sales";
+const DEMO_USERS = [
+  { id: "manager", zh: "陈经理", en: "Manager Chen", role: "manager" as DemoRole, okkiUserId: "DEMO-U-9001", departmentZh: "全球销售部", departmentEn: "Global Sales" },
+  { id: "sales-01", zh: "Jojo", en: "Jojo", role: "sales" as DemoRole, okkiUserId: "DEMO-U-2001", departmentZh: "欧洲组", departmentEn: "Europe Team" },
+  { id: "sales-02", zh: "Mina", en: "Mina", role: "sales" as DemoRole, okkiUserId: "DEMO-U-2002", departmentZh: "内部协作组", departmentEn: "Sales Operations" },
+  { id: "sales-03", zh: "Leo", en: "Leo", role: "sales" as DemoRole, okkiUserId: "DEMO-U-2003", departmentZh: "英国组", departmentEn: "UK Team" }
+] as const;
+const TASK_OWNER: Record<string, string> = { "TASK-001": "sales-01", "TASK-002": "sales-02", "TASK-003": "sales-03" };
+let activeUserId = DEMO_USERS.some(user => user.id === localStorage.getItem("cardbot_demo_user")) ? localStorage.getItem("cardbot_demo_user")! : "manager";
 const names = { open: "进行中", needs_confirmation: "待确认", done: "已完成" };
 const draftNames = { empty: "尚未生成", awaiting_review: "待人工审核", approved: "已审核 · 待保存", saved_local: "已保存至本地" };
 document.documentElement.dataset.theme = localStorage.getItem("cardbot_theme") === "dark" ? "dark" : "light";
@@ -18,7 +27,7 @@ const pill = (label: string, action: string, extra = "") => `<button class="pill
 const themeButton = () => pill(document.documentElement.dataset.theme === "dark" ? (locale === "zh" ? "◐ 浅色" : "◐ Light") : (locale === "zh" ? "◐ 深色" : "◐ Dark"), "theme");
 const languageButton = () => pill(locale === "zh" ? "EN" : "中文", "language", "language-pill");
 const ZH_TO_EN: Record<string, string> = {
-  "工作日":"Workday", "事实依据":"Evidence", "草稿":"Drafts", "审核":"Review", "起草":"Draft", "交付":"Deliver", "团队":"Team", "连接":"Connect",
+  "工作日":"Workday", "事实依据":"Evidence", "草稿":"Drafts", "审核":"Review", "起草":"Draft", "交付":"Deliver", "团队":"Team", "连接":"Connect", "企业":"Organization",
   "工作台":"Workspace", "工作台 ↗":"Workspace ↗", "跳过动画 ↗":"Skip intro ↗", "进入工作台 ↗":"Enter workspace ↗", "↺ 开场":"↺ Intro", "02 / 工作方式":"02 / THE WAY WE WORK",
   "从已发生的对话。":"From what was said.", "到接下来要做的事。":"To what happens next.",
   "同一个工作日，每一次对话。":"One workday. Every conversation.", "01 — 欢迎":"01 — WELCOME",
@@ -30,8 +39,8 @@ const ZH_TO_EN: Record<string, string> = {
   "对话组成的世界":"A WORLD OF CONVERSATIONS", "拖动探索":"DRAG TO EXPLORE", "本地时间":"LOCAL TIME", "实时时钟":"LIVE CLOCK",
   "市场 / 演示城市":"MARKET / DEMO CITY", "城市坐标为预置参考":"City coordinates are preset references", "不是客户真实地址":"not actual customer addresses",
   "01 / 全球工作台":"01 / GLOBAL WORKSPACE", "人工始终在环":"HUMAN IN THE LOOP", "同一批任务":"ONE SHARED TASK LIST",
-  "你的工作，正在推进。":"Your work, in motion.", "每个事实都有来源。":"Every fact has a source.", "起草、审核、保留。":"Draft. Review. Keep.", "一个团队，一份事实。":"One team. One truth.", "放心连接。":"Connect with confidence.",
-  "早间清单":"Morning list", "晚间复盘":"Evening recap", "今日任务":"TODAY'S TASKS", "已完成":"COMPLETED", "有完成依据":"with completion evidence", "待跟进":"NEEDS FOLLOW-UP", "本地草稿":"LOCAL DRAFT", "不是小满草稿":"not an OKKI draft",
+  "你的工作，正在推进。":"Your work, in motion.", "每个事实都有来源。":"Every fact has a source.", "起草、审核、保留。":"Draft. Review. Keep.", "一个团队，一份事实。":"One team. One truth.", "放心连接。":"Connect with confidence.", "一个企业，多重身份。":"One enterprise. Many identities.",
+  "早间清单":"Morning list", "晚间复盘":"Evening recap", "今日任务":"TODAY'S TASKS", "已完成":"COMPLETED", "有完成依据":"with completion evidence", "待跟进":"NEEDS FOLLOW-UP", "本地草稿":"LOCAL DRAFT", "不是小满草稿":"not an OKKI draft", "当前身份可见":"visible to this identity",
   "进行中":"In progress", "待确认":"Needs confirmation", "早晚使用同一份任务状态。生成草稿 ≠ 已发送报价。":"Morning and evening share one task list. A draft ≠ a sent quotation.",
   "下班前再看一眼。":"Before you sign off.", "缺少：":"Missing: ", "下一步：":"Next: ", "本批任务均已人工确认完成。":"All tasks in this batch were confirmed by a human.",
   "来源记录":"SOURCE RECORD", "已知事实":"Confirmed facts", "待确认事项":"Needs confirmation", "完成依据 · 人工确认":"Completion evidence · human confirmed", "记录完成依据":"Record completion evidence", "例如：已提交汇总，记录编号 REPORT-001":"Example: summary submitted, record REPORT-001", "确认完成":"Confirm complete", "生成回复草稿 ↗":"Generate reply draft ↗", "查看回复草稿 ↗":"View reply draft ↗",
@@ -96,6 +105,13 @@ const timeZoneChips = () => ["America/Los_Angeles", "America/New_York", "Europe/
   const market = MARKETS.find(item => item[0] === zone)!;
   return `<span class="time-chip" data-zone="${zone}" data-city="${locale === "zh" ? market[1] : market[2]}"><b>${locale === "zh" ? market[1] : market[2]}</b><time>--:--</time><i>UTC</i></span>`;
 }).join("");
+const activeActor = () => DEMO_USERS.find(user => user.id === activeUserId) || DEMO_USERS[0];
+const visibleTasks = () => activeActor().role === "manager" ? state.tasks : state.tasks.filter(task => TASK_OWNER[task.id] === activeUserId);
+const canSeeDraft = () => activeActor().role === "manager" || activeUserId === "sales-01";
+const demoUserSwitcher = () => `<label class="demo-user-switch"><span>${locale === "zh" ? "演示身份" : "DEMO IDENTITY"}</span><select id="demo-user" aria-label="${locale === "zh" ? "切换演示身份" : "Switch demo identity"}">${DEMO_USERS.map(user => `<option value="${user.id}" ${user.id === activeUserId ? "selected" : ""}>${locale === "zh" ? user.zh : user.en} · ${user.role === "manager" ? (locale === "zh" ? "管理员" : "Manager") : (locale === "zh" ? "业务员" : "Sales")}</option>`).join("")}</select></label>`;
+const allowedNav = () => activeActor().role === "manager"
+  ? [["workday", "工作日"], ["evidence", "事实依据"], ["drafts", "草稿"], ["team", "团队"], ["connections", "连接"], ["organization", "企业"]]
+  : [["workday", "工作日"], ["evidence", "事实依据"], ["drafts", "草稿"]];
 function zoneOffset(date: Date, zone: string) {
   const value = new Intl.DateTimeFormat("en", { timeZone: zone, timeZoneName: "shortOffset" }).formatToParts(date).find(part => part.type === "timeZoneName")?.value || "GMT";
   return value === "GMT" ? "UTC±0" : value.replace("GMT", "UTC");
@@ -132,12 +148,16 @@ function manifesto() {
   // Deliberately no timer: readers choose when to leave this typographic page.
 }
 function workspace(view = currentView) {
-  clean(); cancelled = true; currentView = view; currentScreen = "workspace";
+  clean(); cancelled = true; currentScreen = "workspace";
+  if (!allowedNav().some(([id]) => id === view)) view = "workday";
+  currentView = view;
+  const scopedTasks = visibleTasks();
+  if (!scopedTasks.some(task => task.id === selected)) selected = scopedTasks[0]?.id || "TASK-001";
   sessionStorage.setItem("cardbot_intro_v2", "seen");
-  const completed = state.tasks.filter(t => t.status === "done").length;
+  const completed = scopedTasks.filter(t => t.status === "done").length;
   root.innerHTML = `<div class="workspace-frame">
-    <header class="masthead"><a class="wordmark" href="/">cardbot<span>®</span></a><nav aria-label="工作台导航">${[ ["workday", "工作日"], ["evidence", "事实依据"], ["drafts", "草稿"], ["team", "团队"], ["connections", "连接"] ].map(([id,label]) => `<button data-view="${id}" class="nav-link ${view === id ? "active" : ""}" ${view === id ? 'aria-current="page"' : ""}>${label}</button>`).join("")}</nav><div class="header-actions">${languageButton()}${themeButton()}${pill("↺ 开场", "replay")}</div></header>
-    <div class="preview-ribbon"><span><i></i> INTERACTIVE PREVIEW</span><span>虚构演示数据 · 保存在当前浏览器 · 不发送邮件</span><a href="/crm.html?intro=0">真实 CRM 独立入口 ↗</a></div>
+    <header class="masthead"><a class="wordmark" href="/">cardbot<span>®</span></a><nav aria-label="工作台导航">${allowedNav().map(([id,label]) => `<button data-view="${id}" class="nav-link ${view === id ? "active" : ""}" ${view === id ? 'aria-current="page"' : ""}>${label}</button>`).join("")}</nav><div class="header-actions">${languageButton()}${themeButton()}${pill("↺ 开场", "replay")}</div></header>
+    <div class="preview-ribbon"><span><i></i> INTERACTIVE PREVIEW</span><span>虚构演示数据 · 保存在当前浏览器 · 不发送邮件</span>${demoUserSwitcher()}<a href="/crm.html?intro=0">真实 CRM 独立入口 ↗</a></div>
     <main class="workspace-main">
       <section class="world-stage" aria-label="全球贸易文字地球">
         <div class="world-heading"><p class="eyebrow">你的全球业务，都在同一个工作日。</p><h1><span id="shanghai-greeting">${getShanghaiGreeting(locale, new Date())}</span><br>${locale === "zh" ? "让我们推动" : "Let's move"}<br><em>${locale === "zh" ? "工作向前" : "work forward"}</em></h1><p class="intro-copy">每一次跟进，都有据可依。<br>从早间待办，到晚间复盘。</p><div class="world-actions">${pill("打开今日任务 ↗", "tasks", "primary")}${pill("查看晚间复盘", "evening")}</div></div>
@@ -146,10 +166,10 @@ function workspace(view = currentView) {
         <div class="world-bottom mono"><span>01 / 全球工作台</span><span id="rotation">VIEW CENTER / 100° E</span><span>人工始终在环</span></div>
       </section>
       <section id="operations" class="operations">
-        <div class="operation-heading"><div><span class="eyebrow">${state.batch} / ONE SHARED TASK LIST</span><h2>${view === "workday" ? "Your work, in motion." : ({evidence:"Every fact has a source.", drafts:"Draft. Review. Keep.", team:"One team. One truth.", connections:"Connect with confidence."} as Record<string,string>)[view]}</h2></div><div class="phase-switch" aria-label="早晚视图"><button data-action="morning" class="${state.phase === "morning" ? "active" : ""}">早间清单</button><button data-action="evening" class="${state.phase === "evening" ? "active" : ""}">晚间复盘</button></div></div>
-        <div class="metrics"><div><span>TODAY'S TASKS</span><strong>03<small>同一批任务</small></strong></div><div><span>COMPLETED</span><strong>0${completed}<small>有完成依据</small></strong></div><div><span>NEEDS FOLLOW-UP</span><strong>0${3-completed}<small>待跟进</small></strong></div><div><span>LOCAL DRAFT</span><strong>${state.draft.status === "saved_local" ? "01" : "00"}<small>不是小满草稿</small></strong></div></div>
+        <div class="operation-heading"><div><span class="eyebrow">${state.batch} / ${escape(activeActor().okkiUserId)} / ONE SHARED TASK LIST</span><h2>${view === "workday" ? "Your work, in motion." : ({evidence:"Every fact has a source.", drafts:"Draft. Review. Keep.", team:"One team. One truth.", connections:"Connect with confidence.", organization:"One enterprise. Many identities."} as Record<string,string>)[view]}</h2></div><div class="phase-switch" aria-label="早晚视图"><button data-action="morning" class="${state.phase === "morning" ? "active" : ""}">早间清单</button><button data-action="evening" class="${state.phase === "evening" ? "active" : ""}">晚间复盘</button></div></div>
+        <div class="metrics"><div><span>TODAY'S TASKS</span><strong>${String(scopedTasks.length).padStart(2,"0")}<small>当前身份可见</small></strong></div><div><span>COMPLETED</span><strong>${String(completed).padStart(2,"0")}<small>有完成依据</small></strong></div><div><span>NEEDS FOLLOW-UP</span><strong>${String(scopedTasks.length-completed).padStart(2,"0")}<small>待跟进</small></strong></div><div><span>LOCAL DRAFT</span><strong>${canSeeDraft() && state.draft.status === "saved_local" ? "01" : "00"}<small>不是小满草稿</small></strong></div></div>
         <div id="notice" class="notice" role="status" hidden></div>
-        ${view === "connections" ? connectionContent() : view === "drafts" ? draftContent() : view === "team" ? teamContent() : taskContent(view === "evidence")}
+        ${view === "connections" ? connectionContent() : view === "organization" ? organizationContent() : view === "drafts" ? draftContent() : view === "team" ? teamContent() : taskContent(view === "evidence")}
       </section>
     </main><footer class="workspace-footer"><span class="wordmark">cardbot.</span><span>事实优先，始终由人把关。</span><div>${pill("导出演示数据 ↓", "export")}</div></footer></div>`;
   translateDom();
@@ -177,6 +197,12 @@ function workspace(view = currentView) {
     localStorage.setItem("cardbot_market", selectedMarket);
     updateClock();
   });
+  root.querySelector("#demo-user")?.addEventListener("change", event => {
+    activeUserId = (event.target as HTMLSelectElement).value;
+    localStorage.setItem("cardbot_demo_user", activeUserId);
+    workspace("workday");
+    operations();
+  });
   root.querySelector("#draft-body")?.addEventListener("input", event => {
     editDraft(state, (event.target as HTMLTextAreaElement).value); save();
     document.querySelector("#draft-status")!.textContent = locale === "zh" ? "内容已修改 · 需重新审核" : "Edited · review required again";
@@ -186,17 +212,22 @@ function workspace(view = currentView) {
   });
 }
 function taskContent(evidenceOnly: boolean) {
+  const scopedTasks = visibleTasks();
   const task = state.tasks.find(item => item.id === selected)!;
-  return `<div class="task-layout"><div class="task-list"><div class="list-caption"><span>${state.phase === "evening" ? "EVENING / 今日最终状态" : "MORNING / 今日任务"}</span><span>3 ITEMS</span></div>${state.tasks.map((t,index) => `<button class="task-row ${t.id === selected ? "selected" : ""}" data-task="${t.id}" aria-pressed="${t.id === selected}"><span class="task-number">0${index + 1}</span><span><small>${escape(localizeValue(t.company))}</small><strong>${escape(localizeValue(t.title))}</strong><em>${escape(localizeValue(t.deadline))}</em></span><span class="status ${t.status}">${names[t.status]}</span><span class="row-arrow">↗</span></button>`).join("")}<p class="table-note">早晚使用同一份任务状态。生成草稿 ≠ 已发送报价。</p>${state.phase === "evening" ? `<div class="recap"><h3>Before you sign off.</h3>${state.tasks.filter(t => t.status !== "done").map(t => `<p><b>${escape(localizeValue(t.title))}</b><br>${locale === "zh" ? "缺少" : "Missing"}：${escape(localizeValue(t.missing))}<br>${locale === "zh" ? "下一步" : "Next"}：${escape(localizeValue(t.next))}</p>`).join("") || "本批任务均已人工确认完成。"}</div>` : ""}</div><article class="detail-panel"><div class="detail-top"><span class="eyebrow">${escape(task.id)} / ${locale === "zh" ? "来源记录" : "SOURCE RECORD"}</span><span>↗</span></div><h3>${escape(localizeValue(task.title))}</h3><p class="source-label">${escape(localizeValue(task.source))}</p><blockquote>${escape(task.quote)}</blockquote><div class="fact-line"><b>已知事实</b><p>${task.id === "TASK-001" ? "客户询问 CB-20，数量 200 件。来自上方 EMAIL-001；没有已确认价格或交期。" : "以上原始安排是本项任务的来源；未提供的内容不得补猜。"}</p></div><div class="fact-line"><b>待确认</b><p>${escape(localizeValue(task.missing))}</p></div>${task.status === "done" ? `<div class="completion-proof"><b>完成依据 · 人工确认</b><p>${escape(task.evidence)}</p></div>` : `<label class="field-label" for="completion-evidence">记录完成依据</label><textarea id="completion-evidence" rows="2" placeholder="例如：已提交汇总，记录编号 REPORT-001"></textarea><div class="detail-actions">${pill("确认完成", "complete")}${task.id === "TASK-001" ? pill(evidenceOnly ? "查看回复草稿 ↗" : "生成回复草稿 ↗", "generate", "primary") : ""}</div>`}</article></div>`;
+  return `<div class="task-layout"><div class="task-list"><div class="list-caption"><span>${state.phase === "evening" ? "EVENING / 今日最终状态" : "MORNING / 今日任务"}</span><span>${scopedTasks.length} ITEMS</span></div>${scopedTasks.map((t,index) => `<button class="task-row ${t.id === selected ? "selected" : ""}" data-task="${t.id}" aria-pressed="${t.id === selected}"><span class="task-number">0${index + 1}</span><span><small>${escape(localizeValue(t.company))}</small><strong>${escape(localizeValue(t.title))}</strong><em>${escape(localizeValue(t.deadline))}</em></span><span class="status ${t.status}">${names[t.status]}</span><span class="row-arrow">↗</span></button>`).join("")}<p class="table-note">早晚使用同一份任务状态。生成草稿 ≠ 已发送报价。</p>${state.phase === "evening" ? `<div class="recap"><h3>Before you sign off.</h3>${scopedTasks.filter(t => t.status !== "done").map(t => `<p><b>${escape(localizeValue(t.title))}</b><br>${locale === "zh" ? "缺少" : "Missing"}：${escape(localizeValue(t.missing))}<br>${locale === "zh" ? "下一步" : "Next"}：${escape(localizeValue(t.next))}</p>`).join("") || "本批任务均已人工确认完成。"}</div>` : ""}</div><article class="detail-panel"><div class="detail-top"><span class="eyebrow">${escape(task.id)} / ${locale === "zh" ? "来源记录" : "SOURCE RECORD"}</span><span>↗</span></div><h3>${escape(localizeValue(task.title))}</h3><p class="source-label">${escape(localizeValue(task.source))}</p><blockquote>${escape(task.quote)}</blockquote><div class="fact-line"><b>已知事实</b><p>${task.id === "TASK-001" ? "客户询问 CB-20，数量 200 件。来自上方 EMAIL-001；没有已确认价格或交期。" : "以上原始安排是本项任务的来源；未提供的内容不得补猜。"}</p></div><div class="fact-line"><b>待确认</b><p>${escape(localizeValue(task.missing))}</p></div>${task.status === "done" ? `<div class="completion-proof"><b>完成依据 · 人工确认</b><p>${escape(task.evidence)}</p></div>` : `<label class="field-label" for="completion-evidence">记录完成依据</label><textarea id="completion-evidence" rows="2" placeholder="例如：已提交汇总，记录编号 REPORT-001"></textarea><div class="detail-actions">${pill("确认完成", "complete")}${task.id === "TASK-001" ? pill(evidenceOnly ? "查看回复草稿 ↗" : "生成回复草稿 ↗", "generate", "primary") : ""}</div>`}</article></div>`;
 }
 function draftContent() {
+  if (!canSeeDraft()) return `<article class="detail-panel access-boundary"><span class="eyebrow">PERSONAL MAILBOX / DEMO POLICY</span><h3>${locale === "zh" ? "这个草稿不属于当前业务员" : "This draft belongs to another salesperson"}</h3><p>${locale === "zh" ? "企业 API 可以共用，但个人邮件仍按小满 user_id 隔离。当前身份只能看到自己的邮件与草稿。" : "The enterprise API can be shared, while personal email remains isolated by OKKI user_id. This identity can only see its own mailbox and drafts."}</p></article>`;
   return `<div class="draft-layout"><article class="detail-panel"><span class="eyebrow">SOURCE / EMAIL-001</span><h3>Facts before fluency.</h3><blockquote>${escape(state.tasks[0].quote)}</blockquote><p>已确认：CB-20 / 200 units。<br>未确认：价格、交期。</p><p class="table-note">此预览用固定模板，不调用 DeepSeek。正文不包含未经确认的价格或交期。</p><p>收件人：purchasing@nordic-tools.example<br>主题：Re: CB-20 inquiry<br><small>保留域名 .example，仅作演示，不会发送。</small></p></article><article class="detail-panel draft-editor"><div class="detail-top"><span class="eyebrow">LOCAL DRAFT / BROWSER ONLY</span><span id="draft-status" class="status">${draftNames[state.draft.status]}</span></div><h3>A considered reply.</h3>${state.draft.status === "empty" ? `<p>先读取历史邮件，再生成待审核草稿。</p>${pill("生成演示草稿 ↗", "generate", "primary")}` : `<label class="field-label" for="draft-body">邮件正文（编辑后必须重新审核）</label><textarea id="draft-body" rows="10">${escape(state.draft.body)}</textarea><label class="review-check"><input type="checkbox" id="review-check"> 我已核对来源、收件人和正文，没有未经确认的业务承诺。</label><div class="detail-actions"><button class="pill" data-action="approve" ${state.draft.status !== "awaiting_review" ? "disabled" : ""}>人工审核通过</button><button class="pill primary" data-action="save-draft" ${state.draft.status !== "approved" ? "disabled" : ""}>保存本地草稿 ↓</button></div>${state.draft.savedAt ? `<p class="save-receipt">LOCAL ONLY · ${escape(state.draft.savedAt)}<br>已保存在当前浏览器。未写入小满，未发送；任务不会自动变成已完成。</p>` : ""}`}</article></div>`;
 }
 function teamContent() {
-  return `<div class="team-layout"><article class="detail-panel"><span class="eyebrow">MANAGER VIEW / DEMO TEAM</span><h3>Same tasks. Shared progress.</h3><p>当前预览只有一位演示业务员。管理汇总直接读取同一批任务，不另造一套完成率。</p>${state.tasks.map(t => `<div class="team-row"><span>${escape(t.id)} · ${escape(localizeValue(t.title))}</span><b>${names[t.status]}</b></div>`).join("")}</article><article class="detail-panel"><span class="eyebrow">ACTIVITY / 本地演示记录</span><h3>The day's trail.</h3><ol class="activity-list">${state.events.map(e => `<li>${escape(localizeValue(e))}</li>`).join("")}</ol><p class="table-note">这是浏览器演示记录，不是服务端不可篡改审计日志。</p></article></div>`;
+  return `<div class="team-layout"><article class="detail-panel"><span class="eyebrow">MANAGER VIEW / DEMO TEAM</span><h3>Same tasks. Shared progress.</h3><p>${locale === "zh" ? "经理汇总读取三位演示业务员的同一批任务；切换到业务员身份后，每人只看自己的任务。" : "The manager summary reads the same task batch across three demo salespeople. Each salesperson sees only their own assignment."}</p>${state.tasks.map(t => { const owner = DEMO_USERS.find(user => user.id === TASK_OWNER[t.id])!; return `<div class="team-row"><span>${escape(t.id)} · ${escape(localizeValue(t.title))}<small>${locale === "zh" ? owner.zh : owner.en}</small></span><b>${names[t.status]}</b></div>`; }).join("")}</article><article class="detail-panel"><span class="eyebrow">ACTIVITY / 本地演示记录</span><h3>The day's trail.</h3><ol class="activity-list">${state.events.map(e => `<li>${escape(localizeValue(e))}</li>`).join("")}</ol><p class="table-note">这是浏览器演示记录，不是服务端不可篡改审计日志。</p></article></div>`;
 }
 function connectionContent() {
   return `<div class="connections">${[["01", "DeepSeek", "未接入", "已预留后端模型接口方向；本页草稿是模板。真实 Key 只放服务器环境变量，不进前端和 Git。"],["02", "OKKI / 小满", "待授权验证", "Mock 可用；官方 API 是通用适配骨架；RPA 缺真实驱动。网页账号不等于 API 权限。"],["03", "Historical mail", "EML 解析基础", "后端有 PostalMime 解析和事实依据草稿接口。此预览展示虚构样本，尚未接真实邮箱。"]].map(([n,title,status,text]) => `<article class="detail-panel"><span class="eyebrow">${n} / CONNECTOR</span><h3>${title}</h3><span class="status">${status}</span><p>${text}</p></article>`).join("")}</div><p class="table-note">接下来验收：真实小满保存 → 草稿箱内容复核 → 重新登录再次复核。上述步骤尚未完成。</p>`;
+}
+function organizationContent() {
+  return `<div class="organization-demo"><article class="detail-panel organization-master"><span class="eyebrow">TENANT CONNECTOR / DEMO</span><h3>${locale === "zh" ? "一套企业连接，四个独立身份" : "One enterprise connection, four separate identities"}</h3><p>${locale === "zh" ? "正式接入后，企业密钥只保存在 CardBot 服务端。业务员登录自己的 CardBot 账号，再映射到各自的小满 user_id。" : "After authorization, the enterprise credential stays on the CardBot server. Each salesperson signs in to CardBot and maps to their own OKKI user_id."}</p><div class="connector-line"><span>OKKI ENTERPRISE API</span><b>${locale === "zh" ? "待企业授权" : "Awaiting enterprise approval"}</b></div></article><article class="detail-panel"><span class="eyebrow">ACCESS POLICY / DEMO</span><h3>${locale === "zh" ? "同一接口，不等于看见所有内容" : "One connector does not mean everyone sees everything"}</h3><p>${locale === "zh" ? "业务员仅看自己的客户与邮件；经理看团队进度。真正上线还会在后端再次校验，不依赖前端隐藏。" : "Salespeople see only their own customers and mail; managers see team progress. Production authorization is enforced again on the server, not by hiding UI."}</p></article><div class="identity-ledger">${DEMO_USERS.map(user => `<article class="identity-row"><span class="identity-mark">${user.role === "manager" ? "M" : "S"}</span><div><small>${locale === "zh" ? user.departmentZh : user.departmentEn}</small><strong>${locale === "zh" ? user.zh : user.en}</strong></div><div><small>CARDBOT ID</small><code>${user.id}</code></div><div><small>OKKI USER ID</small><code>${user.okkiUserId}</code></div><span class="status">${locale === "zh" ? "模拟绑定" : "Mock bound"}</span></article>`).join("")}</div></div>`;
 }
 function operations() { document.querySelector("#operations")?.scrollIntoView({ behavior: reduced.matches ? "instant" : "smooth", block: "start" }); }
 root.addEventListener("click", event => {
