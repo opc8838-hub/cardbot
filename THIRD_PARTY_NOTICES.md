@@ -27,6 +27,7 @@ property of their upstream authors.
 | --- | --- | --- | --- | --- |
 | `postal-mime` | 3.0.0 | [postalsys/postal-mime](https://github.com/postalsys/postal-mime) | MIT-0 | Parse local RFC822/EML history into traceable email evidence |
 | `opc8838-hub/bot` / `jeremy-prt/bloub` | reference commit `abe73db` | [opc8838-hub/bot](https://github.com/opc8838-hub/bot) | MIT | Visual reference and catalogue for the playing-card avatar, 12 colours and 16 expressions |
+| Simple Icons | retrieved 2026-09-12 | [simple-icons/simple-icons](https://github.com/simple-icons/simple-icons) | CC0-1.0 | Locally embedded WeChat and WhatsApp SVG paths in the remote-channel preview |
 
 The workbench Bot is a lightweight HTML/CSS implementation written for
 CardBot; it does not bundle the referenced Vue editor or its complete render
@@ -51,10 +52,13 @@ the corresponding package license files and this notice.
 
 ## Platform and trademark notice
 
-WhatsApp and Meta are not open-source components of this project. Use of
-WhatsApp Web or Meta Graph API remains subject to the applicable WhatsApp,
-Meta and platform terms, policies, account restrictions, templates and
-privacy obligations. This project does not claim affiliation with Meta.
+WhatsApp, WeChat, Lark and their owners are not open-source components of
+this project. Their names and marks remain trademarks of their respective
+owners. Use of their APIs and channels remains subject to the applicable
+platform terms, policies, account restrictions, templates and privacy
+obligations. This project does not claim affiliation, partnership or
+endorsement by Meta, Tencent or ByteDance/Lark Technologies. The channel
+cards are an integration preview, not evidence that a channel is connected.
 
 ## License obligations in practical terms
 

@@ -43,7 +43,9 @@ with sync_playwright() as p:
     page.screenshot(path=str(ARTIFACTS / 'v3-overview-light.png'), full_page=True)
     page.evaluate('scrollTo(0, 600)')
     page.wait_for_timeout(100)
-    assert page.locator('.wb-topbar').bounding_box()['y'] <= 11
+    assert page.locator('.wb-topbar').bounding_box()['y'] <= 1
+    assert page.locator('.wb-topbar').evaluate("el => getComputedStyle(el).backgroundColor") == page.locator('.wb-main').evaluate("el => getComputedStyle(el).backgroundColor")
+    assert page.locator('.wb-topbar').evaluate("el => getComputedStyle(el).borderBottomLeftRadius") != '0px'
     page.screenshot(path=str(ARTIFACTS / 'v3-sticky-toolbar.png'))
     page.evaluate('scrollTo(0, 0)')
     page.locator('#city').select_option('Europe/London')
@@ -212,6 +214,7 @@ with sync_playwright() as p:
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('Mobile remote control')
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('WhatsApp')
     assert page.get_by_test_id('remote-dialog').get_by_text('Telegram', exact=True).count() == 0
+    expect(page.locator('.wb-channel-logo svg')).to_have_count(3)
     page.locator('[data-wb-action="remote-refresh"]').click()
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('QR code refreshed')
     page.screenshot(path=str(ARTIFACTS / 'v4-mobile-remote-dark-en.png'), full_page=True)
