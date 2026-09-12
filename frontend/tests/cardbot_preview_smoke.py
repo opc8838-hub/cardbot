@@ -33,6 +33,12 @@ with sync_playwright() as p:
     page.screenshot(path=str(ARTIFACTS / "v2-workspace-light.png"))
     expect(page.locator("#text-earth")).to_be_visible()
     expect(page.locator(".time-chip")).to_have_count(6)
+    assert page.locator(".time-chip b").first.evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 13
+    page.locator("#operations").scroll_into_view_if_needed()
+    assert page.locator(".metrics small").first.evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 13
+    assert page.locator(".task-row small").first.evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 12
+    assert page.locator(".fact-line").first.evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 14
+    page.screenshot(path=str(ARTIFACTS / "v2-workspace-operations.png"))
     expect(page.locator("#demo-user")).to_have_value("manager")
     page.locator('[data-view="organization"]').click()
     expect(page.locator(".identity-row")).to_have_count(4)

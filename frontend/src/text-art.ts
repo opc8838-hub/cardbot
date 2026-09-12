@@ -14,8 +14,8 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
   let w = 1, h = 1, rotation = -100, frame = 0, last = 0, drag = false, previousX = 0, active = true;
   const points: { lat: number; lon: number; land: boolean; word: string }[] = [];
   if (kind === "earth") {
-    for (let lat = -84; lat <= 84; lat += 2.2) {
-      const step = 5.5 / Math.max(.2, Math.cos(lat * Math.PI / 180));
+    for (let lat = -84; lat <= 84; lat += 3.2) {
+      const step = 8 / Math.max(.2, Math.cos(lat * Math.PI / 180));
       for (let lon = -180; lon < 180; lon += step) points.push({ lat, lon, land: geoContains(land, [lon, lat]), word: vocabulary[points.length % vocabulary.length] });
     }
   }
@@ -27,10 +27,10 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
     ctx.textBaseline = "middle";
     if (kind === "card") {
       const pixels = maskCtx.getImageData(0, 0, Math.ceil(w), Math.ceil(h)).data;
-      ctx.font = `${w < 600 ? 8 : 11}px Consolas, monospace`;
+      ctx.font = `${w < 600 ? 10 : 13}px Consolas, monospace`;
       let index = 0;
-      for (let y = 8; y < h; y += w < 600 ? 12 : 15) {
-        for (let x = -12; x < w; x += w < 600 ? 42 : 53) {
+      for (let y = 10; y < h; y += w < 600 ? 15 : 18) {
+        for (let x = -12; x < w; x += w < 600 ? 52 : 64) {
           const inside = pixels[(Math.floor(y) * Math.ceil(w) + Math.max(0, Math.floor(x + 20))) * 4 + 3] > 90;
           const variation = ((index * 17) % 9) / 9;
           ctx.fillStyle = `rgba(${color},${inside ? .22 + variation * .29 : .025 + variation * .045})`;
@@ -48,7 +48,7 @@ export function mountTextArt(canvas: HTMLCanvasElement, kind: "card" | "earth", 
       if (z <= .03) continue;
       const x = w / 2 + Math.cos(latitude) * Math.sin(longitude) * r;
       const y = h / 2 - Math.sin(latitude) * r;
-      ctx.font = `${Math.max(4.5, r * .024)}px Consolas, monospace`;
+      ctx.font = `${Math.max(8, Math.min(14, r * .041))}px Consolas, monospace`;
       ctx.fillStyle = `rgba(${color},${p.land ? .32 + z * .64 : .022 + z * .055})`;
       ctx.save(); ctx.translate(x, y); ctx.scale(Math.max(.25, z), 1);
       ctx.fillText(p.word, -r * .03, 0); ctx.restore();
