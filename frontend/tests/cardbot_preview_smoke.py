@@ -160,6 +160,7 @@ with sync_playwright() as p:
     page.locator('[data-action="workspace"]').last.click()
     expect(page.get_by_test_id('brand-bot')).to_be_visible()
     expect(page.get_by_test_id('brand-bot')).to_have_attribute('data-configured', 'false')
+    assert page.get_by_test_id('brand-bot').evaluate("el => getComputedStyle(el).outlineStyle") == 'none'
     page.get_by_test_id('brand-bot').click()
     expect(page.get_by_test_id('bot-picker')).to_be_visible()
     expect(page.locator('.cb-expression')).to_have_count(16)
