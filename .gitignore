@@ -17,6 +17,8 @@
 node_modules/
 dist/
 build/
+!frontend/motion/cardbot-entry/build/
+!frontend/motion/cardbot-entry/build/*.json
 coverage/
 *.tsbuildinfo
 *.log

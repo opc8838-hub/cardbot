@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "delivery": {
+    "selected": "baked-video",
+    "reasonCodes": ["BACKGROUND_OWNED_BY_VIDEO", "ONE_SEQUENTIAL_CLIP"]
+  },
+  "runtime": {
+    "renderer": "html-video-and-css-transform",
+    "controller": "autonomous-playback",
+    "targetFps": 60
+  },
+  "budget": {
+    "videoFrames": 204,
+    "interactiveFrames": 108,
+    "display": "1920x1080",
+    "layoutPropertiesAnimated": 0,
+    "compositorProperties": ["transform", "opacity"]
+  },
+  "passes": [
+    "single video decode",
+    "single centered transform layer",
+    "reduced-motion rest state"
+  ],
+  "failures": []
+}

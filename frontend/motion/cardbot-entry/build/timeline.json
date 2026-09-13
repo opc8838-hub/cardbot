@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "fps": 60,
+  "frameDuration": 0.0166666667,
+  "initialState": "video-start",
+  "states": [
+    { "id": "video-start", "hold": 0 },
+    { "id": "video-tail", "hold": 3.3833333333 },
+    { "id": "login-ready", "hold": 5.1833333333 }
+  ],
+  "segments": [
+    {
+      "id": "card-film",
+      "from": "video-start",
+      "to": "video-tail",
+      "start": 0,
+      "hold": 3.3833333333,
+      "endExclusive": 3.4,
+      "curve": { "type": "constant", "rate": 1 }
+    },
+    {
+      "id": "login-turn",
+      "from": "video-tail",
+      "to": "login-ready",
+      "start": 3.4,
+      "hold": 5.1833333333,
+      "endExclusive": 5.2,
+      "curve": { "type": "constant", "rate": 1 }
+    }
+  ],
+  "runtime": {
+    "videoFrames": 204,
+    "videoDurationSeconds": 3.4,
+    "loginFrames": 108,
+    "loginDurationMs": 1800,
+    "loginFrameStops": [0, 6, 96, 108]
+  }
+}
