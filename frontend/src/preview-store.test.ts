@@ -27,13 +27,13 @@ for (let i = 0; i < scenes.length; i++) {
   const snapshot = rehearsalSnapshot(i);
   assert.deepEqual(snapshot.tasks.map(t => t.id), ids);
   assert.equal(snapshot.tasks[0].status, 'needs_confirmation');
-  assert.equal(snapshot.tasks.filter(t => t.status === 'done').length, i >= 5 ? 2 : 0);
-  if (i < 4) assert.throws(() => simulatedReceipt(snapshot));
+  assert.equal(snapshot.tasks.filter(t => t.status === 'done').length, i >= 9 ? 2 : 0);
+  if (i < 8) assert.throws(() => simulatedReceipt(snapshot));
   else assert.equal(simulatedReceipt(snapshot).kind, 'simulation');
 }
-assert.equal(rehearsalSnapshot(2).draft.status, 'awaiting_review');
+assert.equal(rehearsalSnapshot(6).draft.status, 'awaiting_review');
 assert.equal(rehearsalSnapshot(0).draft.status, 'empty');
 assert.equal(JSON.stringify(state), preserved);
-assert.deepEqual(rehearsalSnapshot(4), rehearsalSnapshot(4));
+assert.deepEqual(rehearsalSnapshot(8), rehearsalSnapshot(8));
 assert.throws(() => rehearsalSnapshot(-1));
 console.log('PASS: rehearsal review gates, same-batch progress, rewind, isolation and simulated receipt');

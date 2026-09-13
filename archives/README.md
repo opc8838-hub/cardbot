@@ -2,9 +2,15 @@
 
 `cardbot-visual-v2.html` 是工作台重构之前的视觉版本，来源提交 `c3caa2fcdca0f7959df4c064ad6cc8519519627c`。不是把当前工作台另存一份，也不是截图。
 
+- 公开浏览：<https://opc8838-hub.github.io/cardbot/archives/cardbot-visual-v2.html>
+- GitHub 源文件：<https://github.com/opc8838-hub/cardbot/blob/main/archives/cardbot-visual-v2.html>
+- 当前新版 Demo：<https://opc8838-hub.github.io/cardbot/>
+
+GitHub Pages 部署会把本目录的 HTML 原样复制到公开站点的 `archives/` 路径。旧版与新版分别保留，后续新版开发不会覆盖这个文件。
+
 ## 怎么看
 
-直接双击 HTML，用 Chrome、Edge 等现代浏览器打开。只复制这一个文件到另一台电脑即可，无需服务器、Node、数据库或任何 API。GitHub 通常显示源码，请下载文件后打开。
+可以直接打开上面的公开链接；也可以下载 HTML 后双击，用 Chrome、Edge 等现代浏览器离线打开。只复制这一个文件到另一台电脑即可，无需服务器、Node、数据库或任何 API。GitHub 文件页通常先显示源码，需要下载后再离线打开。
 
 保留多语言 Hello 开场、CARD 功能页、大号问候与文字地球首屏、旧横向导航、中英文/黑白主题、虚构任务、本地审核与草稿。动画、样式、JavaScript 和陆地数据全部内嵌。开启系统“减少动态效果”时需手动跳过开场。
 

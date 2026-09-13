@@ -1,0 +1,17 @@
+subject_count: 1
+subjects:
+  - identity: central black CardBot playing card with white eyes
+style: CardBot ink-and-paper editorial interface
+motion_intent: Play the card field, then keep the central card as it flips into and enlarges as the sign-in panel.
+background_owner: video
+scene: Full-screen black field, followed by one centered two-sided card.
+driver: time
+input_semantics: event
+time_control: autonomous
+navigation: none
+clip_continuity: chain
+continuity:
+  - centered card anchor
+  - black card back with white eye motif
+  - portrait card aspect ratio
+destination: Full-screen responsive web entry on desktop and mobile.

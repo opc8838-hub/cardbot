@@ -57,3 +57,11 @@ Git 只同步版本化文件，不同步浏览器数据、运行进程、数据�
 ## 下一步最值得做的事
 
 先用 docs/DEMO_PLAYBOOK.md 播放新工作台的七步演练，确认企业理解预期流程。当前只是模拟接入，不能宣称后端、模型、小满已经连通。技术上推进 ROADMAP P1 的后端数据绑定和外写安全校验，同时确认企业邮件 API 或 RPA 的授权范围。工作台主入口改在 workbench.ts，cardbot-preview.ts 只负责品牌开场；不要再修改已不使用的旧预览页面函数。
+
+入口卡牌片当前唯一资源为 `frontend/public/assets/cardbot-cards-intro.mp4`（1920×1080、3.4 秒）；旧 WebM 已移除。翻卡运行时从 `frontend/motion/cardbot-entry/build/timeline.json` 读取 60fps / 108 帧参数。视频尾帧与登录首帧的取样和说明在 `frontend/motion/cardbot-entry/qa/`；起始黑卡必须保持当前外轮廓、倾斜和眼睛比例，不得重新缩回旧的 0.338 比例。演练焦点由 `workbench.ts` 的 `tourFocusSelectors` 映射十步核心区域；前四步为客户开发，后六步为现有客户、统一审核与团队汇总。新增页面或调整结构时要同步选择器与浏览器断言，避免演讲时高亮丢失。
+
+客户开发 Demo 的虚构数据与本地状态集中在 `frontend/src/prospecting-demo.ts`。它通过 `draftMode` 进入工作台原有“草稿与审核 / 草稿记录”，用于证明两条业务线可以共用机制；真实上线应以适配层连接已有后端获客、验证、外联资格与草稿领域服务，不得直接把 localStorage 结构当 API 契约。
+
+工作台空闲屏保由 `frontend/src/idle-screensaver.ts` 独立管理，固定 20 秒触发；视觉使用现有 `mountTextArt(..., 'earth')` 并复刻 `archives/cardbot-visual-v2.html` 的工作日首屏结构，没有嵌入或运行旧业务代码。顶部纯图形按钮使用独立 `screensaver` 动作，直接调用同一屏保控制器，禁止接入 `tour-*` 业务演练状态机。屏保显示后 `pointermove` 必须保持画面，`pointerdown` 才退出；后续修改全局事件或销毁流程时，必须复测退出动作不会继续传给底层页面。
+
+公开展示由 `.github/workflows/pages.yml` 发布：当前 Vite Demo 位于 `https://opc8838-hub.github.io/cardbot/`，旧版离线 HTML 位于其 `/archives/cardbot-visual-v2.html`。`frontend/vite.config.ts` 的相对 `base` 与 `cardbot-preview.ts` 的 `import.meta.env.BASE_URL` 是 GitHub Pages 子路径兼容所必需，改回根路径会导致卡牌 MP4 或首页链接失效。Pages 是纯静态展示，不要把 `/crm.html`、后端 API 或任何外部连接器标为已上线。

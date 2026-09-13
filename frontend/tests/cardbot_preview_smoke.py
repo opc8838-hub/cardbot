@@ -15,6 +15,19 @@ def action(page, value):
 def nav(page, value):
     return page.locator(f'.wb-nav[data-view="{value}"]')
 
+def font_px(locator):
+    return float(locator.evaluate("el => parseFloat(getComputedStyle(el).fontSize)"))
+
+def skip_to_manifesto(page):
+    page.locator('[data-action="skip"]').click()
+    expect(page.locator('.login-card')).to_be_visible()
+    expect(page.locator('input[type="password"]')).to_be_visible()
+    assert page.locator('.login-content').evaluate("el => getComputedStyle(el).opacity") == '1'
+    no_overflow(page)
+    page.locator('.login-submit').click()
+    expect(page.locator('.manifesto')).to_be_visible()
+    expect(page.locator('html')).to_have_attribute('lang', 'en')
+
 with sync_playwright() as p:
     ARTIFACTS.mkdir(exist_ok=True)
     browser = p.chromium.launch(headless=True)
@@ -24,16 +37,40 @@ with sync_playwright() as p:
     page.on('pageerror', lambda err: errors.append(str(err)))
     page.goto(BASE_URL + '/?intro=1')
     expect(page.locator('#hello-word')).to_be_visible()
-    page.locator('.manifesto').wait_for(timeout=12000)
+    expect(page.locator('.intro-film')).to_be_visible(timeout=12000)
+    expect(page.locator('.intro-film')).to_have_attribute('src', '/assets/cardbot-cards-intro.mp4')
+    expect(page.locator('.intro-film')).to_have_attribute('data-timeline', 'verified', timeout=3000)
+    expect(page.locator('.login-card')).to_be_visible(timeout=7000)
+    expect(page.locator('.login-card-face')).to_have_count(2)
+    assert page.locator('.login-card').evaluate("el => getComputedStyle(el).animationDuration") == '1.8s'
+    assert page.locator('.login-card').evaluate("el => getComputedStyle(el).animationName") == 'login-card-turn'
+    expect(page.locator('input[type="password"]')).to_be_visible()
+    page.locator('.login-submit').click()
+    expect(page.locator('.manifesto')).to_be_visible()
+    expect(page.locator('html')).to_have_attribute('lang', 'en')
     expect(page.locator('.capabilities span')).to_have_count(5)
-    assert page.locator('input[type="password"]').count() == 0
+    expect(page.locator('.capabilities')).to_contain_text('Evidence')
+    assert page.locator('.capabilities span').nth(3).evaluate("el => getComputedStyle(el).color") == 'rgb(109, 74, 255)'
     page.locator('[data-action="workspace"]').last.click()
-    expect(page.locator('.wb-company')).to_contain_text('望京企业全球贸易')
+    expect(page.locator('.wb-company')).to_contain_text('Wangjing Global Trade')
     assert page.locator('.wb-company .wb-avatar').count() == 0
     expect(page.locator('.wb-sidebar')).to_be_visible()
     assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
     assert page.locator('.wb-nav[data-view="outbox"] small').count() == 0
     expect(page.get_by_test_id('remote-trigger')).to_be_visible()
+    expect(page.get_by_test_id('screensaver-trigger')).to_be_visible()
+    assert page.get_by_test_id('screensaver-trigger').inner_text().strip() == ''
+    expect(page.get_by_test_id('screensaver-trigger').locator('svg')).to_have_count(1)
+    page.get_by_test_id('screensaver-trigger').click()
+    expect(page.get_by_test_id('idle-screensaver')).to_be_visible()
+    expect(page.get_by_test_id('idle-screensaver')).to_contain_text('YOUR WORLD. IN ONE WORKDAY.')
+    expect(page.get_by_test_id('idle-screensaver')).to_contain_text("Let's move")
+    assert page.locator('.wb-player').count() == 0
+    page.mouse.move(720, 500)
+    page.wait_for_timeout(1_200)
+    expect(page.get_by_test_id('idle-screensaver')).to_be_visible()
+    page.mouse.click(100, 400)
+    expect(page.get_by_test_id('idle-screensaver')).to_have_count(0)
     expect(page.locator('#demo-user')).to_be_enabled()
     assert page.locator('.wb-topbar').evaluate("el => getComputedStyle(el).position") == 'sticky'
     assert page.locator('.wb-tour-invite').bounding_box()['height'] < 80
@@ -41,6 +78,9 @@ with sync_playwright() as p:
     expect(page.locator('.wb-zone')).to_have_count(6)
     expect(page.locator('#demo-user')).to_have_value('sales-01')
     expect(page.locator('[data-task]')).to_have_count(3)
+    expect(nav(page, 'prospecting')).to_be_visible()
+    expect(page.locator('.wb-flow-entrances button')).to_have_count(2)
+    expect(page.locator('.wb-shared-steps > div')).to_have_count(5)
     overview_panels = page.locator('.wb-overview-grid > .wb-panel')
     expect(overview_panels).to_have_count(2)
     panel_heights = [overview_panels.nth(i).bounding_box()['height'] for i in range(2)]
@@ -56,15 +96,46 @@ with sync_playwright() as p:
     page.screenshot(path=str(ARTIFACTS / 'v3-sticky-toolbar.png'))
     page.evaluate('scrollTo(0, 0)')
     page.locator('#city').select_option('Europe/London')
-    action(page, 'language').click()
     expect(page.locator('html')).to_have_attribute('lang', 'en')
     expect(page.locator('#city')).to_have_value('Europe/London')
     assert page.locator('#shanghai-greeting').inner_text() in {'Good morning', 'Good afternoon', 'Good evening'}
+    assert page.locator('.connection-dot').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(109, 74, 255)'
+    page.locator('.wb-shell').evaluate("el => el.dataset.themeProbe = 'kept'")
     action(page, 'theme').click()
+    expect(page.locator('html')).to_have_attribute('data-theme', 'dark')
+    expect(page.locator('.wb-shell')).to_have_attribute('data-theme-probe', 'kept')
     page.screenshot(path=str(ARTIFACTS / 'v3-overview-dark-en.png'), full_page=True)
     assert page.locator('.wb-legacy, a[href="/crm.html?intro=0"]').count() == 0
     action(page, 'theme').click()
     action(page, 'language').click()
+    expect(page.locator('html')).to_have_attribute('lang', 'zh-CN')
+    assert page.locator('html').evaluate("el => el.classList.contains('language-transitioning')")
+    page.wait_for_function("!document.documentElement.classList.contains('language-transitioning')")
+
+    # New-customer development is a full qualification path, not an email lookup.
+    nav(page, 'prospecting').click()
+    expect(page.locator('.wb-prospect-rail button')).to_have_count(6)
+    expect(page.locator('.wb-prospect-results')).to_contain_text('Aurora Habitat AB')
+    expect(page.locator('.wb-prospect-dossier')).to_contain_text('为什么匹配')
+    expect(page.locator('.wb-prospect-action')).to_contain_text('联系方式来源')
+    action(page, 'prospect-next').click()
+    expect(page.locator('.wb-prospect-process .wb-badge.blue')).to_contain_text('02')
+    action(page, 'prospect-next').click()
+    action(page, 'prospect-next').click()
+    action(page, 'prospect-next').click()
+    action(page, 'prospect-finish').click()
+    expect(page.locator('.wb-prospect-process .wb-badge.blue')).to_contain_text('06')
+    action(page, 'draft-outreach').click()
+    expect(page.locator('.wb-draft-switch')).to_contain_text('新客户开发信')
+    expect(page.locator('.wb-draft-editor')).to_contain_text('Aurora Habitat')
+    action(page, 'approve-outreach').click()
+    expect(page.locator('#notice')).to_contain_text('请先核对')
+    page.locator('#outreach-review-check').check()
+    action(page, 'approve-outreach').click()
+    expect(page.locator('#outreach-status')).to_contain_text('已审核')
+    action(page, 'save-outreach').click()
+    expect(page.locator('.wb-receipt')).to_contain_text('LOCAL-OUTREACH-001')
+    expect(page.locator('.wb-receipt')).to_contain_text('审计摘要')
 
     nav(page, 'workday').click()
     assert page.locator('#text-earth').count() == 0
@@ -110,11 +181,27 @@ with sync_playwright() as p:
     # Playback advances by itself, pauses, rewinds, and never overwrites manual work.
     action(page, 'tour-start').click()
     expect(page.locator('.wb-player')).to_have_attribute('data-step', '0')
-    expect(page.locator('[data-task]')).to_have_count(3)
+    expect(page.locator('.wb-shell')).to_have_attribute('data-rehearsal-step', '1')
+    expect(nav(page, 'prospecting')).to_have_class('wb-nav active tour-live')
+    expect(page.locator('.wb-tour-focus')).to_have_count(1)
+    expect(page.locator('.wb-tour-focus')).to_have_attribute('data-tour-focus', '1')
+    assert page.locator('.player-steps .active').evaluate("el => getComputedStyle(el).backgroundColor") == 'rgb(109, 74, 255)'
+    expect(page.locator('.player-steps button')).to_have_count(10)
     expect(page.locator('.wb-player')).to_have_attribute('data-step', '1', timeout=10000)
+    expect(page.locator('.wb-shell')).to_have_attribute('data-rehearsal-step', '2')
+    expect(nav(page, 'prospecting')).to_have_class('wb-nav active tour-live')
+    expect(page.locator('.wb-tour-focus')).to_have_attribute('data-tour-focus', '2')
     action(page, 'tour-play').click()
     page.wait_for_timeout(7500)
     expect(page.locator('.wb-player')).to_have_attribute('data-step', '1')
+    action(page, 'tour-next').click()
+    expect(page.locator('.wb-prospect-dossier')).to_have_class('wb-panel wb-prospect-dossier wb-tour-focus')
+    action(page, 'tour-next').click()
+    expect(page.locator('.wb-prospect-action')).to_have_class('wb-panel wb-prospect-action wb-tour-focus')
+    action(page, 'tour-next').click()
+    expect(page.locator('[data-task]')).to_have_count(3)
+    action(page, 'tour-next').click()
+    expect(nav(page, 'evidence')).to_have_class('wb-nav active tour-live')
     action(page, 'tour-next').click()
     expect(page.locator('#draft-status')).to_have_text('待人工审核')
     expect(page.locator('#draft-body')).to_have_attribute('readonly', '')
@@ -125,16 +212,17 @@ with sync_playwright() as p:
     page.screenshot(path=str(ARTIFACTS / 'v3-rehearsal-save.png'), full_page=True)
     action(page, 'tour-prev').click()
     expect(page.locator('#draft-status')).to_have_text('已审核 · 待保存')
-    page.locator('.player-steps [data-step="5"]').click()
-    expect(page.locator('[data-task="TASK-001"]')).to_contain_text('待确认')
-    expect(page.locator('[data-task="TASK-002"]')).to_contain_text('已完成')
-    expect(page.locator('[data-task="TASK-003"]')).to_contain_text('已完成')
-    action(page, 'tour-next').click()
+    page.locator('.player-steps [data-step="9"]').click()
     expect(page.locator('#demo-user')).to_have_value('manager')
     expect(page.locator('.wb-team-task')).to_have_count(3)
+    expect(page.locator('.wb-team-task').nth(0)).to_contain_text('待确认')
+    expect(page.locator('.wb-team-task').nth(1)).to_contain_text('已完成')
+    expect(page.locator('.wb-team-task').nth(2)).to_contain_text('已完成')
     expect(action(page, 'tour-next')).to_be_disabled()
     page.screenshot(path=str(ARTIFACTS / 'v3-rehearsal-team.png'), full_page=True)
     action(page, 'tour-exit').click()
+    expect(page.locator('.wb-shell')).not_to_have_class('is-rehearsing')
+    expect(page.locator('.wb-tour-focus')).to_have_count(0)
     expect(page.locator('#demo-user')).to_have_value('sales-01')
     assert page.evaluate('localStorage.getItem("cardbot_preview_v1")') == before
     nav(page, 'drafts').click()
@@ -157,6 +245,17 @@ with sync_playwright() as p:
     expect(page.locator('.wb-player')).to_have_count(0)
     expect(page.locator('#demo-user')).to_have_value('sales-02')
     expect(page.locator('#notice')).to_contain_text('account switched')
+    page.wait_for_timeout(20_500)
+    expect(page.get_by_test_id('idle-screensaver')).to_be_visible()
+    expect(page.get_by_test_id('screensaver-earth')).to_be_visible()
+    earth_box = page.get_by_test_id('screensaver-earth').bounding_box()
+    assert earth_box['width'] >= 700 and earth_box['height'] >= 700
+    earth_frame = page.get_by_test_id('screensaver-earth').evaluate("el => el.toDataURL()")
+    page.wait_for_timeout(650)
+    assert page.get_by_test_id('screensaver-earth').evaluate("el => el.toDataURL()") != earth_frame
+    page.screenshot(path=str(ARTIFACTS / 'v8-idle-screensaver.png'))
+    page.keyboard.press('Escape')
+    expect(page.get_by_test_id('idle-screensaver')).to_have_count(0)
     assert not errors, errors
     context.close()
 
@@ -167,8 +266,10 @@ with sync_playwright() as p:
     bot_errors = []
     page.on('pageerror', lambda err: bot_errors.append(str(err)))
     page.goto(BASE_URL + '/?intro=1')
-    page.locator('[data-action="skip"]').click()
+    skip_to_manifesto(page)
     page.locator('[data-action="workspace"]').last.click()
+    action(page, 'language').click()
+    expect(page.locator('html')).to_have_attribute('lang', 'zh-CN')
     expect(page.get_by_test_id('brand-bot')).to_be_visible()
     expect(page.get_by_test_id('brand-bot')).to_have_attribute('data-configured', 'false')
     assert page.get_by_test_id('brand-bot').evaluate("el => getComputedStyle(el).outlineStyle") == 'none'
@@ -247,11 +348,18 @@ with sync_playwright() as p:
     expect(page.get_by_test_id('brand-bot').locator('.cb-bot-face')).to_have_attribute('data-expression', 'heureux')
     page.get_by_test_id('remote-trigger').click()
     expect(page.get_by_test_id('remote-dialog')).to_be_visible()
+    remote_panels = page.locator('.wb-remote-grid > *')
+    expect(remote_panels).to_have_count(2)
+    assert all(float(remote_panels.nth(i).evaluate("el => getComputedStyle(el).opacity")) > .98 for i in range(2))
     assert page.get_by_test_id('remote-dialog').bounding_box()['width'] <= 862
-    expect(page.get_by_test_id('remote-dialog')).to_contain_text('Mobile remote control')
+    expect(page.get_by_test_id('remote-dialog')).to_contain_text('Connect CardBot')
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('WhatsApp')
     assert page.get_by_test_id('remote-dialog').get_by_text('Telegram', exact=True).count() == 0
     expect(page.locator('.wb-channel-logo svg')).to_have_count(3)
+    page.wait_for_timeout(900)
+    expect(page.locator('.wb-remote-grid')).to_be_visible()
+    assert page.locator('.wb-remote-grid').bounding_box()['height'] > 200
+    assert all(float(page.locator('.wb-remote-grid > *').nth(i).evaluate("el => getComputedStyle(el).opacity")) > .98 for i in range(2))
     expect(page.locator('.wb-channel-line')).to_have_count(3)
     channel_line = page.locator('.wb-channel-line').first
     assert abs(channel_line.locator('h4').bounding_box()['y'] - channel_line.locator('p').bounding_box()['y']) < 8
@@ -259,6 +367,28 @@ with sync_playwright() as p:
     page.locator('[data-wb-action="remote-refresh"]').click()
     expect(page.get_by_test_id('remote-dialog')).to_contain_text('QR code refreshed')
     page.screenshot(path=str(ARTIFACTS / 'v4-mobile-remote-dark-en.png'), full_page=True)
+    page.locator('[data-wb-action="remote-page-next"]').click()
+    expect(page.get_by_test_id('unified-entry-slide')).to_contain_text('Any channel. The same CardBot.')
+    expect(page.locator('.wb-channel-bridge .wb-channel-logo svg')).to_have_count(3)
+    expect(page.locator('.wb-capability-rail > div')).to_have_count(4)
+    assert all(float(page.locator('.wb-capability-rail > div').nth(i).evaluate("el => getComputedStyle(el).opacity")) > .98 for i in range(4))
+    page.locator('[data-wb-action="remote-page-next"]').click()
+    expect(page.get_by_test_id('prospecting-solution-slide')).to_contain_text('Help sales find prospects worth contacting')
+    expect(page.locator('.wb-decision-pipeline article')).to_have_count(4)
+    assert all(float(page.locator('.wb-decision-pipeline article').nth(i).evaluate("el => getComputedStyle(el).opacity")) > .98 for i in range(4))
+    assert font_px(page.locator('.wb-decision-pipeline small').first) >= 13
+    page.keyboard.press('ArrowRight')
+    expect(page.get_by_test_id('followup-solution-slide')).to_contain_text('CardBot keeps the work moving')
+    expect(page.locator('.wb-plain-flow > div')).to_have_count(5)
+    assert font_px(page.locator('.wb-plain-flow small').first) >= 14
+    page.keyboard.press('ArrowRight')
+    expect(page.get_by_test_id('controlled-ai-slide')).to_contain_text('AI stays on task')
+    assert font_px(page.locator('.wb-audit-log small').first) >= 12
+    page.keyboard.press('ArrowRight')
+    expect(page.get_by_test_id('channel-summary-slide')).to_contain_text('Channels handle quick actions')
+    expect(page.get_by_test_id('channel-summary-slide')).to_contain_text('CardBot workbench is the full business system')
+    expect(page.locator('.wb-presentation-count')).to_have_text('06 / 06')
+    page.screenshot(path=str(ARTIFACTS / 'v6-capability-audit-dark-en.png'), full_page=True)
     page.locator('[data-wb-action="remote-close"]').last.click()
     no_overflow(page)
     assert not bot_errors, bot_errors
@@ -269,8 +399,9 @@ with sync_playwright() as p:
         page = mobile.new_page()
         page.goto(BASE_URL + '/?intro=1')
         expect(page.locator('#hello-word')).to_have_text('Hello / 你好')
-        page.locator('[data-action="skip"]').click()
+        skip_to_manifesto(page)
         page.locator('[data-action="workspace"]').last.click()
+        expect(page.get_by_test_id('screensaver-trigger')).to_be_visible()
         no_overflow(page)
         page.screenshot(path=str(ARTIFACTS / f'v3-overview-{width}.png'), full_page=True)
         if width < 700:
@@ -287,7 +418,16 @@ with sync_playwright() as p:
                 expect(page.get_by_test_id('remote-dialog')).to_be_visible()
                 no_overflow(page)
                 page.screenshot(path=str(ARTIFACTS / 'v4-mobile-remote-390.png'), full_page=True)
+                page.locator('[data-wb-action="remote-page-next"]').click()
+                expect(page.get_by_test_id('unified-entry-slide')).to_be_visible()
+                no_overflow(page)
+                page.screenshot(path=str(ARTIFACTS / 'v6-capability-overview-390.png'), full_page=True)
                 page.locator('[data-wb-action="remote-close"]').last.click()
+                nav(page, 'prospecting').click()
+                expect(page.locator('.wb-prospect-rail button')).to_have_count(6)
+                no_overflow(page)
+                page.screenshot(path=str(ARTIFACTS / 'v7-prospecting-390.png'), full_page=True)
+                action(page, 'menu').click()
         nav(page, 'evidence').click()
         no_overflow(page)
         action(page, 'tour-start').click()
@@ -297,4 +437,4 @@ with sync_playwright() as p:
         page.screenshot(path=str(ARTIFACTS / f'v3-rehearsal-{width}.png'), full_page=True)
         mobile.close()
     browser.close()
-print('PASS: workbench, personal CardBot picker/chat/drag/accent, mobile remote modal, bilingual themes, evidence, review gates, simulated save/failure, persistence, rehearsal playback/pause/rewind/isolation, roles and responsive layouts')
+print('PASS: 20-second rotating-globe screensaver and compact screensaver preview trigger, new MP4 entry timeline, 108-frame login turn, sequential rehearsal focus, workbench, personal CardBot picker/chat/drag/accent, mobile remote and capability presentation, bilingual themes, evidence, review gates, simulated save/failure, persistence, rehearsal playback/pause/rewind/isolation, roles and responsive layouts')

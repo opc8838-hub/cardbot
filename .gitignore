@@ -43,6 +43,7 @@ whatsapp-plugin/sessions/
 whatsapp-plugin/auth_info*/
 playwright-report/
 test-results/
+.playwright-cli/
 frontend/tests/artifacts/
 **/artifacts/
 # Machine-only inspection helper

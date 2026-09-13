@@ -2,6 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
+  // Relative assets keep the static demo working both at `/` locally and under
+  // the GitHub Pages project path (`/cardbot/`).
+  base: "./",
   plugins: [react()],
   build: {
     rollupOptions: { input: { main: "index.html", crm: "crm.html" } }

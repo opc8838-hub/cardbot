@@ -1,13 +1,16 @@
 import { freshPreview, createDraft, approveDraft, saveDraft, completeTask, type PreviewState } from './preview-store';
 
 export const scenes = [
-  { time: '08:00', view: 'workday', zh: '一天，从清晰开始', en: 'Start with a clear day', noteZh: '演练：客户邮件、经理安排、部门协作，汇成 Jojo 的同一批三项任务。', noteEn: 'Simulation: customer email, a manager assignment and a team request become Jojo’s three tasks.' },
-  { time: '09:15', view: 'evidence', zh: '先看历史，再做判断', en: 'Read history before replying', noteZh: '找到产品和数量依据；新版价格与交期仍待确认。点击引用可以回看原文。', noteEn: 'Find the product and quantity in the source. Revised pricing and delivery are still unconfirmed. Open each citation.' },
-  { time: '09:20', view: 'drafts', zh: '准备一封有依据的回复', en: 'Prepare an evidence-backed reply', noteZh: '预置草稿引用已知事实，不承诺未知价格和交期。此步骤模拟生成，不调用模型。', noteEn: 'The preset reply uses confirmed facts and makes no price or delivery commitment. No model is called.' },
-  { time: '09:25', view: 'drafts', zh: '把决定权交给业务员', en: 'Keep the decision with the salesperson', noteZh: '此帧模拟业务员完成审核。实际手动操作仍需勾选核对；修改正文会撤销审核。', noteEn: 'This frame simulates the salesperson’s approval. Manual use requires a review check; editing revokes approval.' },
-  { time: '09:26', view: 'outbox', zh: '草稿进入业务员的工作流', en: 'The draft reaches the salesperson’s workflow', noteZh: '展示模拟小满草稿箱与内容读回结果。数据只在演练中，未连接真实小满，也未发送。', noteEn: 'Inspect a simulated OKKI draft box and read-back result. This is rehearsal data, never sent to real OKKI.' },
-  { time: '17:30', view: 'workday', zh: '下班前，知道还差什么', en: 'Know what still needs attention', noteZh: '汇总已提交，地址已确认；报价仍缺价格和交期。保存草稿不会把报价任务自动标为完成。', noteEn: 'The report is submitted and the address confirmed. Pricing and delivery still block the quote. Saving a draft does not finish the task.' },
-  { time: '17:35', view: 'team', zh: '同一份进度，团队可见', en: 'One shared view of progress', noteZh: '切换到经理视角，读取同一批任务：两项完成、一项待跟进，卡点与个人端一致。', noteEn: 'The manager sees the same tasks: two complete and one blocked, with the same evidence as the personal view.' }
+  { time: '08:00', view: 'prospecting', zh: '先说清楚，什么客户值得找', en: 'Define who is worth finding', noteZh: '从产品、市场和客户类型建立目标客户条件。不是先抓一批邮箱，再倒推谁可能有用。', noteEn: 'Start from product, market and customer type. Do not collect emails first and justify them later.' },
+  { time: '08:06', view: 'prospecting', zh: '找到企业，先看匹配度', en: 'Find companies and assess fit', noteZh: '候选企业按业务匹配与公开信号排序；联系方式还不是这一阶段的核心。', noteEn: 'Rank companies by business fit and public signals. Contact data is not the point yet.' },
+  { time: '08:12', view: 'prospecting', zh: '回答为什么值得开发、为什么是现在', en: 'Explain why this company, and why now', noteZh: '把企业背景、近期项目和资料来源放在一起，形成可核对的开发判断。', noteEn: 'Combine company context, recent projects and sources into a verifiable qualification decision.' },
+  { time: '08:18', view: 'prospecting', zh: '找到对的人，再准备有针对性的沟通', en: 'Find the right person, then prepare the approach', noteZh: '确认负责人和来源，提炼合作切入点；开发信仍然要进入统一草稿审核。', noteEn: 'Record the decision-maker and source, then shape the approach. Outreach still enters the shared review gate.' },
+  { time: '09:00', view: 'workday', zh: '新客户和老客户，汇成同一个工作日', en: 'One workday for new and existing customers', noteZh: '开发跟进、客户邮件、经理安排和部门协作，都进入 Jojo 的任务视图。', noteEn: 'Prospecting, customer mail, manager assignments and team requests all enter Jojo’s task view.' },
+  { time: '09:15', view: 'evidence', zh: '老客户来信，先看以前谈过什么', en: 'Read history before replying to an existing customer', noteZh: '找到产品和数量依据；新版价格与交期仍待确认。点击引用可以回看原文。', noteEn: 'Find the product and quantity in the source. Revised pricing and delivery remain unconfirmed.' },
+  { time: '09:20', view: 'drafts', zh: '判断下一步，再准备有依据的回复', en: 'Decide the next step, then prepare a grounded reply', noteZh: '草稿只使用已知事实，不承诺未知价格和交期。当前内容为预置流程，不调用模型。', noteEn: 'The draft only uses known facts and makes no unconfirmed promise. This preset flow does not call a model.' },
+  { time: '09:25', view: 'drafts', zh: '两条业务线，都由业务员确认', en: 'A salesperson approves both business lines', noteZh: '开发信和客户回复共用同一审核门槛；修改正文会撤销已完成的审核。', noteEn: 'Outreach and customer replies share one review gate. Editing revokes prior approval.' },
+  { time: '09:26', view: 'outbox', zh: '审核后的草稿，进入统一记录', en: 'Reviewed drafts enter one shared record', noteZh: '展示本地草稿与读回结果。数据未写入真实小满，也没有发送邮件。', noteEn: 'Inspect the local draft and read-back result. Nothing is written to real OKKI or sent.' },
+  { time: '17:35', view: 'team', zh: '同一份进度，个人和团队都看得懂', en: 'One progress view for the salesperson and team', noteZh: '经理看到相同的任务、依据和卡点；保存草稿不会自动把业务任务标为完成。', noteEn: 'The manager sees the same tasks, evidence and blockers. Saving a draft does not complete a business task.' }
 ] as const;
 
 // Deterministic snapshots make previous/next/replay reversible. Never persist these
@@ -15,10 +18,10 @@ export const scenes = [
 export function rehearsalSnapshot(index: number): PreviewState {
   if (!Number.isInteger(index) || index < 0 || index >= scenes.length) throw new Error('Invalid rehearsal scene');
   const state = freshPreview();
-  if (index >= 2) createDraft(state);
-  if (index >= 3) approveDraft(state);
-  if (index >= 4) { saveDraft(state); state.draft.savedAt = '2026-09-12T01:26:00.000Z'; }
-  if (index >= 5) {
+  if (index >= 6) createDraft(state);
+  if (index >= 7) approveDraft(state);
+  if (index >= 8) { saveDraft(state); state.draft.savedAt = '2026-09-12T01:26:00.000Z'; }
+  if (index >= 9) {
     completeTask(state, 'TASK-002', 'DEMO REPORT-001 · 11:40 · submitted');
     completeTask(state, 'TASK-003', 'DEMO ADDRESS-003 · 15:10 · confirmed by customer');
     state.phase = 'evening';
