@@ -2,7 +2,7 @@ subject_count: 1
 subjects:
   - identity: central black CardBot playing card with white eyes
 style: CardBot ink-and-paper editorial interface
-motion_intent: Play the card field, then keep the central card as it flips into and enlarges as the sign-in panel.
+motion_intent: Resolve greeting, card field and login turn as one ten-second scored sequence, then leave the login panel at rest.
 background_owner: video
 scene: Full-screen black field, followed by one centered two-sided card.
 driver: time

@@ -13,7 +13,7 @@ npm run preview:dev
 
 浏览器打开 `http://127.0.0.1:5190/`。保持终端运行；Ctrl+C 停止服务。5190 被占用会明确失败，不悄悄换端口。可以停止自己的旧预览进程，或手动使用 `npm run dev --workspace frontend -- --port 5191 --strictPort` 并按打印的新地址访问。
 
-首次是问候动画，之后为 CARD 功能页，点击 Enter workspace。再次刷新直接到工作台；`/?intro=1` 或 Intro 按钮重播。低动态系统设置下问候停留，用户点击 Skip。
+首次是 10 秒有声入口：多语言问候 → 卡牌片 → 翻卡登录，登录后进入 CARD 功能页并点击 Enter workspace。再次刷新直接到工作台；`/?intro=1` 或工作台的 Intro 按钮重播。右上角扬声器图标可静音；浏览器若阻止首次有声自动播放，点击图标会按当前时间轴恢复。低动态系统设置下问候停留后直接显示登录最终态，用户也可点击 Skip。
 
 **旧裸 `npm run dev` 不是预览指令**：它会走数据库档位与通信服务，未配环境就可能报错。请先用 `preview:dev`。
 
@@ -99,7 +99,7 @@ npm run dev --workspace backend
 | 演示任务/草稿 | 浏览器 localStorage `cardbot_preview_v1` | 否；可点 Export 备份，仅导出，无导入 UI |
 | 每个演示账号的 Bot 表情/颜色 | 浏览器 localStorage `cardbot_bot_v1_<accountId>` | 否；只是个人视觉偏好，不含真实账号资料 |
 | 主题 | localStorage `cardbot_theme` | 否 |
-| 已看过动画 | sessionStorage `cardbot_intro_v2` | 否 |
+| 已看过动画 | sessionStorage `cardbot_intro_v3` | 否 |
 | 真实 CRM 数据 | 配置的数据库 | 否；需授权备份恢复/共享服务 |
 | 后端文件草稿 | `CARDBOT_LOCAL_DRAFT_FILE` 指向的 JSON | 否；按敏感业务数据另行备份 |
 | Key、账号、cookie、RPA会话 | 本地配置/秘密管理 | 否；安全渠道另配 |

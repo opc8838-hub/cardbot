@@ -58,7 +58,7 @@ Git 只同步版本化文件，不同步浏览器数据、运行进程、数据�
 
 先用 docs/DEMO_PLAYBOOK.md 播放新工作台的七步演练，确认企业理解预期流程。当前只是模拟接入，不能宣称后端、模型、小满已经连通。技术上推进 ROADMAP P1 的后端数据绑定和外写安全校验，同时确认企业邮件 API 或 RPA 的授权范围。工作台主入口改在 workbench.ts，cardbot-preview.ts 只负责品牌开场；不要再修改已不使用的旧预览页面函数。
 
-入口卡牌片当前唯一资源为 `frontend/public/assets/cardbot-cards-intro.mp4`（1920×1080、3.4 秒）；旧 WebM 已移除。翻卡运行时从 `frontend/motion/cardbot-entry/build/timeline.json` 读取 60fps / 108 帧参数。视频尾帧与登录首帧的取样和说明在 `frontend/motion/cardbot-entry/qa/`；起始黑卡必须保持当前外轮廓、倾斜和眼睛比例，不得重新缩回旧的 0.338 比例。演练焦点由 `workbench.ts` 的 `tourFocusSelectors` 映射十步核心区域；前四步为客户开发，后六步为现有客户、统一审核与团队汇总。新增页面或调整结构时要同步选择器与浏览器断言，避免演讲时高亮丢失。
+入口卡牌片当前唯一视频资源为 `frontend/public/assets/cardbot-cards-intro.mp4`（1920×1080、3.4 秒），有声音轨为 `frontend/public/assets/cardbot-intro-score.m4a`（AAC-LC、44.1kHz 立体声、9.217 秒）；旧 WebM 已移除。完整入口固定为问候 4.8 秒 + 卡牌片 3.4 秒 + 翻卡 1.8 秒 = 10 秒，运行时从 `frontend/motion/cardbot-entry/build/timeline.json` 读取参数。浏览器禁止首屏有声自动播放时必须保留当前的静音回退和按当前秒数恢复机制，不得伪装成正在播放。视频尾帧与登录首帧的取样和说明在 `frontend/motion/cardbot-entry/qa/`；起始黑卡必须保持当前外轮廓、倾斜和眼睛比例，不得重新缩回旧的 0.338 比例。演练焦点由 `workbench.ts` 的 `tourFocusSelectors` 映射十步核心区域；前四步为客户开发，后六步为现有客户、统一审核与团队汇总。新增页面或调整结构时要同步选择器与浏览器断言，避免演讲时高亮丢失。
 
 客户开发 Demo 的虚构数据与本地状态集中在 `frontend/src/prospecting-demo.ts`。它通过 `draftMode` 进入工作台原有“草稿与审核 / 草稿记录”，用于证明两条业务线可以共用机制；真实上线应以适配层连接已有后端获客、验证、外联资格与草稿领域服务，不得直接把 localStorage 结构当 API 契约。
 

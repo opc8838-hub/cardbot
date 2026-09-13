@@ -38,6 +38,25 @@ with sync_playwright() as p:
     page.on('pageerror', lambda err: errors.append(str(err)))
     page.goto(BASE_URL + '/?intro=1')
     expect(page.locator('#hello-word')).to_be_visible()
+    intro_score = page.get_by_test_id('intro-score')
+    expect(intro_score).to_have_attribute('src', re.compile(r'^(?:\./|/)assets/cardbot-intro-score\.m4a$'))
+    expect(page.get_by_test_id('intro-audio-toggle').last).to_be_visible()
+    assert page.get_by_test_id('intro-audio-toggle').inner_text().strip() == ''
+    expect(page.get_by_test_id('intro-audio-toggle').locator('svg')).to_have_count(1)
+    initial_mute_state = page.get_by_test_id('intro-audio-toggle').get_attribute('data-muted')
+    if initial_mute_state == 'true':
+        page.get_by_test_id('intro-audio-toggle').click()
+        expect(page.get_by_test_id('intro-audio-toggle')).to_have_attribute('data-muted', 'false')
+    else:
+        page.get_by_test_id('intro-audio-toggle').click()
+        expect(page.get_by_test_id('intro-audio-toggle')).to_have_attribute('data-muted', 'true')
+        page.get_by_test_id('intro-audio-toggle').click()
+        expect(page.get_by_test_id('intro-audio-toggle')).to_have_attribute('data-muted', 'false')
+    page.wait_for_function(
+        "document.querySelector('[data-testid=\"intro-score\"]').currentTime > 0.05",
+        timeout=3000,
+    )
+    page.get_by_test_id('intro-audio-toggle').click()
     expect(page.locator('.intro-film')).to_be_visible(timeout=12000)
     expect(page.locator('.intro-film')).to_have_attribute(
         'src', re.compile(r'^(?:\./|/)assets/cardbot-cards-intro\.mp4$')
@@ -47,7 +66,10 @@ with sync_playwright() as p:
     expect(page.locator('.login-card-face')).to_have_count(2)
     assert page.locator('.login-card').evaluate("el => getComputedStyle(el).animationDuration") == '1.8s'
     assert page.locator('.login-card').evaluate("el => getComputedStyle(el).animationName") == 'login-card-turn'
+    expect(page.get_by_test_id('intro-audio-toggle').last).to_be_visible()
     expect(page.locator('input[type="password"]')).to_be_visible()
+    expect(page.locator('.login-card')).to_have_class(re.compile(r'login-card-rest'), timeout=3000)
+    assert intro_score.evaluate('el => el.paused')
     page.locator('.login-submit').click()
     expect(page.locator('.manifesto')).to_be_visible()
     expect(page.locator('html')).to_have_attribute('lang', 'en')

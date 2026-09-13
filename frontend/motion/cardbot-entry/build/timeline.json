@@ -2,37 +2,52 @@
   "schemaVersion": 1,
   "fps": 60,
   "frameDuration": 0.0166666667,
-  "initialState": "video-start",
+  "initialState": "greeting-start",
   "states": [
-    { "id": "video-start", "hold": 0 },
-    { "id": "video-tail", "hold": 3.3833333333 },
-    { "id": "login-ready", "hold": 5.1833333333 }
+    { "id": "greeting-start", "hold": 0 },
+    { "id": "video-start", "hold": 4.8 },
+    { "id": "video-tail", "hold": 8.1833333333 },
+    { "id": "login-ready", "hold": 9.9833333333 }
   ],
   "segments": [
+    {
+      "id": "multilingual-greeting",
+      "from": "greeting-start",
+      "to": "video-start",
+      "start": 0,
+      "hold": 4.7833333333,
+      "endExclusive": 4.8,
+      "curve": { "type": "stepped-dissolve", "rate": 1 }
+    },
     {
       "id": "card-film",
       "from": "video-start",
       "to": "video-tail",
-      "start": 0,
-      "hold": 3.3833333333,
-      "endExclusive": 3.4,
+      "start": 4.8,
+      "hold": 8.1833333333,
+      "endExclusive": 8.2,
       "curve": { "type": "constant", "rate": 1 }
     },
     {
       "id": "login-turn",
       "from": "video-tail",
       "to": "login-ready",
-      "start": 3.4,
-      "hold": 5.1833333333,
-      "endExclusive": 5.2,
+      "start": 8.2,
+      "hold": 9.9833333333,
+      "endExclusive": 10,
       "curve": { "type": "constant", "rate": 1 }
     }
   ],
   "runtime": {
+    "helloInitialMs": 750,
+    "helloTransitionMs": 170,
+    "helloHoldMs": 640,
     "videoFrames": 204,
     "videoDurationSeconds": 3.4,
     "loginFrames": 108,
     "loginDurationMs": 1800,
-    "loginFrameStops": [0, 6, 96, 108]
+    "loginFrameStops": [0, 6, 96, 108],
+    "introTotalMs": 10000,
+    "audioDurationSeconds": 9.217007
   }
 }

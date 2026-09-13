@@ -50,3 +50,18 @@
 /* Readability floor: all supporting information must remain legible at a glance. */
 .mono,.eyebrow,.section-label{font-size:12px;line-height:1.55}.nav-link{font-size:14px}.preview-ribbon{font-size:12px}.preview-ribbon>span:first-child{font-size:11px}.world-heading .eyebrow{font-size:12px}.intro-copy{font-size:15px}.earth-foot,.world-bottom{font-size:11px}.world-coordinates .mono,.world-coordinates label,.coordinate-note{font-size:12px}.world-coordinates select{font-size:14px}.time-chip{font-size:11px;padding:8px 10px}.time-chip b{font-size:13px}.demo-user-switch{font-size:11px}.demo-user-switch select{font-size:12px}.phase-switch button{font-size:13px}.metrics span{font-size:12px}.metrics small{font-size:13px;font-weight:500}.list-caption{font-size:12px}.task-number{font-size:13px}.task-row small{font-size:12px}.task-row strong{font-size:17px}.task-row em{font-size:13px}.status{font-size:12px}.table-note{font-size:14px}.source-label{font-size:12px}blockquote{font-size:14px}.fact-line{grid-template-columns:82px 1fr;font-size:14px}.field-label{font-size:13px}textarea{font-size:14px}.detail-actions .pill{font-size:13px}.notice{font-size:14px}.recap p,.detail-panel>p,.team-row,.activity-list{font-size:14px}.review-check{font-size:13px}.workspace-footer>span:nth-child(2){font-size:14px}.connector-line{font-size:12px}.identity-row small{font-size:11px}.identity-row strong{font-size:16px}.identity-row code{font-size:12px}.identity-mark{font-size:12px}.team-row small{font-size:11px}
 @media(max-width:760px){.mono,.eyebrow,.section-label{font-size:11px}.nav-link{font-size:12px}.preview-ribbon,.preview-ribbon>span:first-child{font-size:11px}.world-heading .eyebrow{font-size:11px}.intro-copy{font-size:14px}.world-actions .pill,.header-actions .pill,.manifesto-footer .pill{font-size:12px}.earth-foot,.world-bottom{font-size:10px}.time-chip{font-size:10px;padding:7px 8px}.time-chip b{font-size:11px}.metrics span{font-size:11px}.metrics small{font-size:12px}.task-row small{font-size:11px}.task-row strong{font-size:16px}.task-row em,.status{font-size:12px}.list-caption,.source-label{font-size:11px}.table-note,blockquote,.fact-line,.detail-panel>p,.team-row,.activity-list{font-size:13px}.workspace-footer>span:nth-child(2){font-size:12px}}
+
+/* The soundtrack control stays deliberately quieter and smaller than the
+   primary intro actions while remaining keyboard accessible. */
+.intro-score-audio{position:fixed;width:1px;height:1px;left:-2px;top:-2px;opacity:0;pointer-events:none}
+#hello-word{transition-duration:170ms,320ms;transform:translateY(0)}
+#hello-word.out{transform:translateY(-12px)}
+.intro-actions,.login-top-actions{display:flex;align-items:center;gap:9px}
+.intro-audio-button{width:30px;height:30px;min-width:30px;display:grid;place-items:center;padding:0;border:1px solid #555;border-radius:999px;background:color-mix(in srgb,#101111 82%,transparent);color:#f8f8f6;cursor:pointer;transition:background 180ms ease,transform 180ms ease,border-color 180ms ease}
+.intro-audio-button:hover{background:#292a2a;border-color:#777}
+.intro-audio-button:active{transform:scale(.92)}
+.intro-audio-button:focus-visible{outline:2px solid #ac92ff;outline-offset:3px}
+.intro-audio-button svg{width:13px;height:13px;overflow:visible;fill:currentColor}
+.intro-audio-button .audio-wave,.intro-audio-button .audio-slash{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.login-top-actions>span{white-space:nowrap}
+@media(max-width:760px){.intro-audio-button{width:28px;height:28px;min-width:28px}.intro-audio-button svg{width:12px;height:12px}}

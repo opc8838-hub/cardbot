@@ -1,12 +1,21 @@
 concept_contract: concept-contract.yaml
 parameter_space: linear
 media_access: sequential
+soundtrack:
+  asset: frontend/public/assets/cardbot-intro-score.m4a
+  starts_with: first-greeting
+  source_duration_seconds: 9.217007
+  visual_sequence_duration_seconds: 10
+  browser_policy: Try audible autoplay; if the browser blocks it, expose a tiny icon control and resume at the current timeline position after a user gesture.
 gesture_policy:
   input: event
   semantics: event
   driver: time
   time_control: autonomous
 storyboard:
+  - id: multilingual-greeting
+    frames: 288
+    outcome: Six greetings dissolve in sequence while the extracted score starts at the first frame.
   - id: card-film
     frames: 204
     outcome: The new 1920x1080 card field resolves to one central black card.
@@ -23,5 +32,6 @@ frame_policy: native
 target_fps: 60
 quality:
   video: 1920x1080 baked MP4
+  audio: 9.217-second 44.1kHz stereo AAC copied without re-encoding from the user-supplied QuickTime file
   interactive_segment: one continuous compositor curve with a short final settle
 reduced_motion: Show the login-ready rest state immediately.
