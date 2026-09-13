@@ -1,5 +1,6 @@
 """Browser acceptance for the fictional workbench; requires the local Vite server."""
 import os
+import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
@@ -38,7 +39,9 @@ with sync_playwright() as p:
     page.goto(BASE_URL + '/?intro=1')
     expect(page.locator('#hello-word')).to_be_visible()
     expect(page.locator('.intro-film')).to_be_visible(timeout=12000)
-    expect(page.locator('.intro-film')).to_have_attribute('src', '/assets/cardbot-cards-intro.mp4')
+    expect(page.locator('.intro-film')).to_have_attribute(
+        'src', re.compile(r'^(?:\./|/)assets/cardbot-cards-intro\.mp4$')
+    )
     expect(page.locator('.intro-film')).to_have_attribute('data-timeline', 'verified', timeout=3000)
     expect(page.locator('.login-card')).to_be_visible(timeout=7000)
     expect(page.locator('.login-card-face')).to_have_count(2)
