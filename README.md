@@ -7,6 +7,19 @@
 - GitHub 仓库：<https://github.com/opc8838-hub/cardbot>
 - 当前状态与测试：[docs/STATUS.md](docs/STATUS.md)
 
+## 动效分享：浏览、下载与接入
+
+给朋友直接转发 **[动效分享页](https://opc8838-hub.github.io/cardbot/motion-kits/)**，里面汇总两块登录转场交付及现有 Bot 编辑器。
+
+| 内容 | 在线浏览 | 源码 / 下载 |
+| --- | --- | --- |
+| 原站完整开场：问候、卡牌视频、同高翻转登录 | [播放完整开场](https://opc8838-hub.github.io/cardbot/?intro=1) | [原版参数与参考帧](frontend/motion/cardbot-entry/)、[原版 CSS](frontend/src/cardbot-preview.css)、[原版控制器](frontend/src/cardbot-preview.ts) |
+| 独立卡牌登录转场：60fps、1.8 秒、同高接管、旋转放大、黑白换面 | [独立预览](https://opc8838-hub.github.io/cardbot/motion-kits/login-handoff/) | [接入说明](motion-kits/login-handoff/README.md)、[下载独立 ZIP](https://opc8838-hub.github.io/cardbot/motion-kits/cardbot-login-handoff.zip) |
+| Bot 形象、表情、动画编辑器 | [打开编辑器](https://opc8838-hub.github.io/bot/) | [Bot 源码](https://github.com/opc8838-hub/bot)、[下载源码 ZIP](https://github.com/opc8838-hub/bot/archive/refs/heads/main.zip) |
+| 多卡牌编排动效编辑器 | [打开卡牌编辑器](https://opc8838-hub.github.io/bot/motion.html) | 与上面的 Bot 仓库一起下载 |
+
+独立 ZIP 解压后双击 `index.html` 即可预览，无需安装依赖。接入现有项目只需 HTML、CSS 和 JS；TypeScript 示例与 JSON 参数也在包内。独立包不含原卡牌视频与音乐，可在自己的视频 `ended` 时接入。登录转场目前通过代码/参数调整；可视化编辑器是上表的 Bot 与多卡牌编排工具。许可分别以两个仓库的 LICENSE 为准。
+
 公开 Demo 是静态交互预览，使用虚构数据，不要求账号或 API。它可以说明产品流程和界面，但**不是已经接通 DeepSeek、邮箱、小满 OKKI、微信、飞书或 WhatsApp 的线上业务系统**。
 
 ## CardBot 解决什么问题

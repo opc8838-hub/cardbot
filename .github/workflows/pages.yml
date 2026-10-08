@@ -32,6 +32,7 @@ jobs:
           mkdir -p frontend/dist/archives
           cp archives/cardbot-visual-v2.html frontend/dist/archives/cardbot-visual-v2.html
           cp archives/README.md frontend/dist/archives/README.md
+          cp -R motion-kits frontend/dist/motion-kits
           touch frontend/dist/.nojekyll
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
